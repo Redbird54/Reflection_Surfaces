@@ -22,4 +22,11 @@ Hyperbola plot added using contour
 Special case found that breaks derivative: curv2 = Curved_surfaces(1,2,4,9,1,3,-1) [derivative is 1/0] -> fixed
 Want to convert dx and dy inputs into a single input array -> will allow for higher dimensions
 Completed turning lines into vectors and using vectors to calculate reflected ray -> will need to adjust some things for higher dimensions
+Functions now output intercept point and direction of output ray. Can now chain functions together
+
+Week 5: Goals: Fix plots so they show curves as the rays they represent; one plot for multiple curves; add in basic refractions
+Continued to clean up and remove old code; realized current method to find output direction is same as "mirroring technique" used before, not the tan_theta method
+Rays now shown as such in plots
+Plots can now show chain of rays, although can be very confusing to look at
+Added control parameters to control what kind of plot is shown (only 1 vs multiple; show normal and tangent; show only where light rays actually travel)
 --> 
