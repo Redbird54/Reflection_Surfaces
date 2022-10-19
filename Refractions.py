@@ -3,112 +3,8 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 
-
-#Previous implementation: block with flat surfaces
-class Glass_objects: # glass block or otherwise
-    def __init__(someobj,m,c,a1,b1,m1,h,n1,n2):	
-        someobj.m = m
-        someobj.c = c
-        someobj.a1 = a1 # x coord of point from where incident
-        someobj.b1 = b1 # y coord of point from where incident
-        someobj.m1 = m1
-        someobj.h = h   # height of glass
-        someobj.n1 = n1 # medium of input
-        someobj.n2 = n2 # medium of output
-
-    def block_type1(this): # type 1 glass block
-
-        x = np.linspace(-5, 5, 100)
-
-        print("Equation of glass block starting side, y =",this.m,"x +",+ this.c)
-
-        c1 = this.b1 - this.a1*this.m1  # calculating constant intercept of incident ray
-        print("Equation of incident ray, y =",this.m1,"x +",+ c1)
-
-        x_inc = (c1 - this.c)/(this.m - this.m1)
-        y_inc = (this.m*(c1 - this.c))/(this.m - this.m1)  + this.c 
-
-        print("Coordinates of point at which incident ray hits glass,  x coord , ",x_inc,"y coord", y_inc)
-
-        theta1 = math.atan(this.m1)
-
-        # using Snell's law, n1sin(theta1) = n2sin(theta2)
-        # let slope of refracted ray be m2 , then m2 is -
-
-        m2 = math.tan(np.arcsin((this.n1*math.sin(theta1))/this.n2))
-
-
-        #constant intercept of refracted ray
-
-        c2 = y_inc - m2*x_inc
-
-        print("Equation of refracted ray, y =",m2,"x +",+ c2)
-
-        # equation of line parallel to the glass starting line, with height difference h (so, other side of the planar glass)
-
-        c3 = this.h*math.sqrt(this.m*this.m + 1) + this.c
-
-
-        print("Equation of glass block ending side, y =",this.m,"x +",+ c3)
-
-        # point coordinates of where the glass ends and so does the refracted ray
-        # there are two possibilities, given the absolute sign of the equation on the numerator
-
-        x_ref_exit = (c3 - c2)/(m2 - this.m)
-
-        y_ref_exit = (this.m*(c3 - c2))/(m2 - this.m) + c3
-
-        print("Coordinates of point at which refracted ray exits glass,  x coord , ",x_ref_exit,"y coord", y_ref_exit)
-
-#Flat surface, no longer a block. Slightly vectorized. Theta incorrect
-class Medium_surfaces: # flat surface between two mediums
-    def __init__(someobj,n1,n2,initDir,initPoint,surfDir,surfPoint):	
-        someobj.n1 = n1 # medium of input
-        someobj.n2 = n2 # medium of output
-        someobj.initDir = initDir
-        someobj.initPoint = initPoint
-        someobj.surfDir = surfDir
-        someobj.surfPoint = surfPoint
-
-    def block_type1(this): # type 1 glass block
-
-        #m1 -> initDir
-        #m -> surfDir
-        #c -> surfPoint
-
-        m = this.surfDir[1]/this.surfDir[0]
-        m1 = this.initDir[1]/this.initDir[0]
-        c = this.surfPoint[1]
-
-        print("Equation of glass block starting side, y =", m,"x +",+ c)
-
-        c1 = this.initPoint[1] - this.initPoint[0]*m1  # calculating constant intercept of incident ray
-        print("Equation of incident ray, y =",m1,"x +",+ c1)
-
-        x_inc = (c1 - c)/(m - m1)
-        y_inc = (m*(c1 - c))/(m - m1)  + c 
-
-        print("Coordinates of point at which incident ray hits glass,  x coord , ",x_inc,"y coord", y_inc)
-
-        theta1 = math.atan(m1)
-
-        # using Snell's law, n1sin(theta1) = n2sin(theta2)
-        # let slope of refracted ray be m2 , then m2 is -
-
-        m2 = math.tan(np.arcsin((this.n1*math.sin(theta1))/this.n2))
-
-
-        #constant intercept of refracted ray
-
-        c2 = y_inc - m2*x_inc
-
-        print("Equation of refracted ray, y =",m2,"x +",+ c2)
-
-        return np.array([x_inc,y_inc]),np.array([1,m2])
-
-
 #Flat surface, completely vectorized with new Snell's Law for theta
-class Medium_surfaces2: # flat surface between two mediums
+class Medium_flat_surfaces: # flat surface between two mediums
     def __init__(someobj,n1,n2,initPoint,initDir,surfPoint,surfDir):	
         someobj.n1 = n1 # medium of input
         someobj.n2 = n2 # medium of output
@@ -121,14 +17,6 @@ class Medium_surfaces2: # flat surface between two mediums
 
         x = np.linspace(-5, 5, 100)
         t = np.linspace(0, 10, 500)
-
-        #m1 -> initDir
-        #m -> surfDir
-        #c -> surfPoint
-
-        m = this.surfDir[1]/this.surfDir[0]
-        m1 = this.initDir[1]/this.initDir[0]
-        c = this.surfPoint[1]
 
         print("Vector equation of surface:", this.surfPoint,"+ t*", this.surfDir)
         plt.plot(this.surfPoint[0] + x*this.surfDir[0], this.surfPoint[1] + x*this.surfDir[1],'blue')
@@ -163,27 +51,7 @@ class Medium_surfaces2: # flat surface between two mediums
 
 
         print("Output direction:", outDir)
-        plt.plot(intercept[0] + t*outDir[0], intercept[1] + t*outDir[1],'green')
-
-        theta1 = math.atan(m1)
-
-        # using Snell's law, n1sin(theta1) = n2sin(theta2)
-        # let slope of refracted ray be m2 , then m2 is -
-
-        m2 = math.tan(np.arcsin((this.n1*math.sin(theta1))/this.n2))
-
-
-        #constant intercept of refracted ray
-
-        c1 = this.initPoint[1] - this.initPoint[0]*m1
-        x_inc = (c1 - c)/(m - m1)
-        y_inc = (m*(c1 - c))/(m - m1)  + c 
-        c2 = y_inc - m2*x_inc
-
-        print("Equation of refracted ray, y =",m2,"x +",+ c2)
-        plt.plot(x, m2*x + c2, 'red')
-
-        
+        plt.plot(intercept[0] + t*outDir[0], intercept[1] + t*outDir[1],'green')        
 
         return intercept,outDir
 
@@ -280,7 +148,7 @@ class Lens:
     def block_type2(this): # type 2 convex surface
         conv1 = Circular_Lens(n1,n2,this.r,this.initPoint,this.initDir,np.array([this.center[0]-(this.h/2)+this.r,this.center[1]]))
         nextPoint, nextDir = conv1.block_type2()
-        print("HERE", nextPoint, nextDir,np.array([this.center[0]+(this.h/2)-this.r,this.center[1]]))
+        print("CHECK OUTPUT:", nextPoint, nextDir,np.array([this.center[0]+(this.h/2)-this.r,this.center[1]]))
         conv1 = Circular_Lens(n2,n1,this.r,nextPoint,nextDir,np.array([this.center[0]+(this.h/2)-this.r,this.center[1]]))
         nextPoint, nextDir = conv1.block_type2()
 
