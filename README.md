@@ -29,4 +29,12 @@ Continued to clean up and remove old code; realized current method to find outpu
 Rays now shown as such in plots
 Plots can now show chain of rays, although can be very confusing to look at
 Added control parameters to control what kind of plot is shown (only 1 vs multiple; show normal and tangent; show only where light rays actually travel)
+Began to work on refractions. Found that previous method was incorrect (theta is not simply arctan of slope)
+Began implementing flat surface; replacing the glass "chunk" (now only one boundary, not two)
+Created graph for illustration
+Found equation for using Snell's Law with vectors but is very complicated, must figure out how it works
+Begun work to implement circular lens, must still fix tangent
+Tangent fix, lens appears to work
+
+Week 6: Goals: Check that "lens" is correctly showing the physical properties (make sure physics equations work), quick check on polar coordinates
 --> 

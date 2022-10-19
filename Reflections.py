@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 
 
-class Curved_surfaces:
+class Curved_Surface:
 	def __init__(someobj,a,b,c,initialPoint,directionVec):
 		someobj.a = a
 		someobj.b = b
@@ -12,15 +12,15 @@ class Curved_surfaces:
 		someobj.initPoint = initialPoint
 		someobj.initDir = directionVec
 
-	def tang_normal_type1(surface1, ray_only, simpleView, isPlot): # parabola 1
+	def tang_normal_type1(this, ray_only, simpleView, isPlot): # parabola 1
 
 		print('VERTICAL PARABOLA')
 
-		a = surface1.a
-		b = surface1.b
-		c = surface1.c
-		initPoint = surface1.initPoint
-		initDir = surface1.initDir
+		a = this.a
+		b = this.b
+		c = this.c
+		initPoint = this.initPoint
+		initDir = this.initDir
 
 		if isPlot:
 			plt.grid(color='lightgray',linestyle='--')
@@ -109,16 +109,15 @@ class Curved_surfaces:
 
 		return intercept, out
 	
-	#tang_normal(-1,0,1,1,2,0,2)
-	def tang_normal_type2(surface1, ray_only, simpleView, isPlot):  # parabola 2
+	def tang_normal_type2(this, ray_only, simpleView, isPlot):  # parabola 2
 
 		print('HORIZONTAL PARABOLA')
 
-		a = surface1.a
-		b = surface1.b
-		c = surface1.c
-		initPoint = surface1.initPoint
-		initDir = surface1.initDir
+		a = this.a
+		b = this.b
+		c = this.c
+		initPoint = this.initPoint
+		initDir = this.initDir
 
 		if isPlot:
 			plt.grid(color='lightgray',linestyle='--')
@@ -209,7 +208,7 @@ class Curved_surfaces:
 
 
 
-class Plane_surfaces:
+class Plane_Surface:
 
 	def __init__(someobj,a,b,initialPoint,directionVec):
 		someobj.a = a
@@ -217,14 +216,14 @@ class Plane_surfaces:
 		someobj.initPoint = initialPoint
 		someobj.initDir = directionVec
 
-	def tang_normal_type3(surface1, ray_only, simpleView, isPlot):
+	def tang_normal_type3(this, ray_only, simpleView, isPlot):
 
 		print('PLANE')
 
-		a = surface1.a
-		b = surface1.b
-		initPoint = surface1.initPoint
-		initDir = surface1.initDir
+		a = this.a
+		b = this.b
+		initPoint = this.initPoint
+		initDir = this.initDir
 
 		if isPlot:
 			plt.grid(color='lightgray',linestyle='--')
@@ -303,7 +302,7 @@ class Plane_surfaces:
 
 
 	
-class Hyperbola_curve:
+class Hyperbola_Curve:
 
 	def __init__(someobj,a,b,h,k,initialPoint,directionVec):
 		someobj.a = a
@@ -313,16 +312,16 @@ class Hyperbola_curve:
 		someobj.initPoint = initialPoint
 		someobj.initDir = directionVec
 
-	def tang_normal_type4(surface1, ray_only, simpleView, isPlot): # parabola 1
+	def tang_normal_type4(this, ray_only, simpleView, isPlot): # parabola 1
 
 		print('HYPERBOLA')
 
-		a = surface1.a
-		b = surface1.b
-		h = surface1.h
-		k = surface1.k
-		initPoint = surface1.initPoint
-		initDir = surface1.initDir
+		a = this.a
+		b = this.b
+		h = this.h
+		k = this.k
+		initPoint = this.initPoint
+		initDir = this.initDir
 
 		if isPlot:
 			plt.grid(color='lightgray',linestyle='--')
@@ -429,16 +428,16 @@ class Ellipse:
 		someobj.initPoint = initialPoint
 		someobj.initDir = directionVec
 
-	def tang_normal_type5(surface1, ray_only, simpleView, isPlot):
+	def tang_normal_type5(this, ray_only, simpleView, isPlot):
 
 		print('ELLIPSE')
 
-		a = surface1.a
-		b = surface1.b
-		h = surface1.h
-		k = surface1.k
-		initPoint = surface1.initPoint
-		initDir = surface1.initDir
+		a = this.a
+		b = this.b
+		h = this.h
+		k = this.k
+		initPoint = this.initPoint
+		initDir = this.initDir
 
 		if isPlot:
 			plt.grid(color='lightgray',linestyle='--')
@@ -462,8 +461,9 @@ class Ellipse:
 
 	    ##Equation of curve
 		print("Equation of curve,  0 =", b*b,"x^2 +", a*a,"y^2 +", -2*b*b*h,"x +", -2*a*a*k,"y +", b*b*h*h + a*a*k*k - a*a*b*b)
-		s = np.linspace(0, 2*math.pi, 100)
-		plt.plot( h+a*np.cos(s) , k+b*np.sin(s), 'red')
+		hyp = np.linspace(-10, 10, 1000)
+		hypx, hypy = np.meshgrid(x, hyp)
+		plt.contour(hypx, hypy,(((hypx - h)**2)/a**2 + ((hypy - k)**2)/b**2), [1], colors='red')
 
 
 		##Find where ray and curve intersect
@@ -536,25 +536,25 @@ class Ellipse:
 
 ##Settings for how to show plot(s)
 raysOnly = True
-simpleView = True
+simpleView = False
 indivPlots = False
 
-# curv1 = Curved_surfaces(1,0,1,np.array([0,2]),np.array([1,2])) #a,b,c,initPoint,initDir
+# curv1 = Curved_Surface(1,0,1,np.array([0,2]),np.array([1,2])) #a,b,c,initPoint,initDir
 # nextPoint,nextDir = curv1.tang_normal_type1(raysOnly, simpleView, indivPlots)	
 
-# curv2 = Curved_surfaces(1,2,4,np.array([-6,-2]),np.array([9,1])) 
+# curv2 = Curved_Surface(1,2,4,np.array([12,0]),np.array([-9,1])) 
 # nextPoint,nextDir = curv2.tang_normal_type2(raysOnly, simpleView, indivPlots)
 
-# plane1 = Plane_surfaces(1,0,np.array([4,3]),np.array([1,2])) #a,b,initPoint,initDir
-# nextPoint,nextDir = plane1.tang_normal_type3(raysOnly, simpleView, indivPlots)
+# curv3 = Plane_Surface(1,0,np.array([4,3]),np.array([1,2])) #a,b,initPoint,initDir
+# nextPoint,nextDir = curv3.tang_normal_type3(raysOnly, simpleView, indivPlots)
 
-# curv4 = Hyperbola_curve(1,2,1,3,np.array([2,2]),np.array([1,4])) #a,b,h,k,initPoint,initDir
+# curv4 = Hyperbola_Curve(1,2,1,3,np.array([2,2]),np.array([1,4])) #a,b,h,k,initPoint,initDir
 # nextPoint,nextDir = curv4.tang_normal_type4(raysOnly, simpleView, indivPlots)
 
 curv5 = Ellipse(1,2,1,3, np.array([0,0]),np.array([1,4])) 
 nextPoint,nextDir = curv5.tang_normal_type5(raysOnly, simpleView, indivPlots)
 
-curv4 = Hyperbola_curve(3,2,1,3,nextPoint,nextDir)
+curv4 = Hyperbola_Curve(3,2,1,3,nextPoint,nextDir)
 nextPoint,nextDir = curv4.tang_normal_type4(raysOnly, simpleView, indivPlots)
 
 
