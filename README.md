@@ -36,5 +36,16 @@ Found equation for using Snell's Law with vectors but is very complicated, must 
 Begun work to implement circular lens, must still fix tangent
 Tangent fix, lens appears to work
 
-Week 6: Goals: Check that "lens" is correctly showing the physical properties (make sure physics equations work), quick check on polar coordinates
+Week 6: Goals: Check that "lens" is correctly showing the physical properties (make sure physics equations work), quick check on polar coordinates.
+Lens appears to be somewhat working, but not following physics calculations exactly. More investigation required.
+Spent most of week working on intermediate presentation.
+
+Week 7: Goals: Add in citations, work on polar coordinates, continue to check physics of lens.
+Mainly worked on polar coordinates mathematics. Having trouble implementing them and not sure if possible in all cases.
+
+Week 8: Goals: Fix the derivatives, continue to check physics of lens, start working on rotations, polar coordinates.
+Added in gradients of curve at the intercept points. This is done using an import called numdifftools which calculated the derivative direction. This gradient represents the *normal* to the tangent and thus replaces the normDir.
+Rotation of parabola, ellipse, and hyperbola completed. Are they rotating the "correct" direction? See ellipse for example
+
+Week 9: Goals: Confirm different parabola forms are same, implement paper, continue to check physics of lens.
 --> 
