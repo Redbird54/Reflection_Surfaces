@@ -40,9 +40,6 @@ class Parabola:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of x^2', a)
-        print('The coefficient of x', b)
-        print('The constant term', c)
 
 
         ##Equation of curve
@@ -106,10 +103,9 @@ class Parabola:
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -149,9 +145,6 @@ class Parabola:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
         
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of y^2', a)
-        print('The coefficient of y', b)
-        print('The constant term', c)
 
 
         ##Equation of curve
@@ -214,10 +207,9 @@ class Parabola:
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -269,9 +261,6 @@ class Rotated_Parabola:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of x^2', a)
-        print('The coefficient of x', b)
-        print('The constant term', c)
 
 
         ##Equation of curve
@@ -328,10 +317,9 @@ class Rotated_Parabola:
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -379,8 +367,6 @@ class Linear:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of x', a)
-        print('The constant term', b)
 
 
         ##Equation of curve
@@ -422,10 +408,9 @@ class Linear:
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -512,10 +497,9 @@ class Vector_Linear:
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -567,11 +551,6 @@ class Hyperbola:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of x^2', b*b)
-        print('The coefficient of y^2', -a*a)
-        print('The coefficient of x', -2*b*b*h)
-        print('The coefficient of y', 2*a*a*k)
-        print('The constant term', b*b*h*h - a*a*k*k - a*a*b*b)
 
 
         ##Equation of curve
@@ -625,10 +604,9 @@ class Hyperbola:
         
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -683,11 +661,6 @@ class Rotated_Hyperbola:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of x^2', b*b)
-        print('The coefficient of y^2', -a*a)
-        print('The coefficient of x', -2*b*b*h)
-        print('The coefficient of y', 2*a*a*k)
-        print('The constant term', b*b*h*h - a*a*k*k - a*a*b*b)
 
 
         ##Equation of curve
@@ -750,10 +723,9 @@ class Rotated_Hyperbola:
         
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -805,11 +777,6 @@ class Ellipse:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of x^2: ', b*b)
-        print('The coefficient of y^2: ', a*a)
-        print('The coefficient of x: ', -2*b*b*h)
-        print('The coefficient of y: ', -2*a*a*k)
-        print('The constant term: ', b*b*h*h + a*a*k*k - a*a*b*b)
 
 
         ##Equation of curve
@@ -867,10 +834,9 @@ class Ellipse:
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
@@ -928,11 +894,6 @@ class Rotated_Ellipse:
             plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         print("Ray Direction: ", initDir[0], initDir[1])
-        print('The coefficient of x^2: ', b*b)
-        print('The coefficient of y^2: ', a*a)
-        print('The coefficient of x: ', -2*b*b*h)
-        print('The coefficient of y: ', -2*a*a*k)
-        print('The constant term: ', b*b*h*h + a*a*k*k - a*a*b*b)
 
 
         ##Equation of curve
@@ -1002,10 +963,9 @@ class Rotated_Ellipse:
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        rayDir = np.array([initDir[0], initDir[1]])
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
-        out = rayDir - 2*(np.dot(rayDir, normNorm)*normNorm)
+        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
         ##Direction of reflected line
         print("Output Direction: ", out)
