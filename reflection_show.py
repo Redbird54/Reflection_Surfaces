@@ -45,5 +45,5 @@ if not(indivPlots):
     plt.xlim(-10, 10)
     plt.ylim(-10, 10)
     plt.gca().set_aspect('equal', adjustable='box')
-    # plt.savefig('/Users/epeairs/Desktop/chain3.pdf', bbox_inches='tight')
+
     plt.show()
