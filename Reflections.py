@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numdifftools as nd
 
 
-class Curved_Surface:
+class Parabola:
     def __init__(someobj,a,b,c,initialPoint,directionVec):
         someobj.a = a
         someobj.b = b
@@ -14,7 +14,7 @@ class Curved_Surface:
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
-    def tang_normal_type1(this, ray_only, simpleView, isPlot): # parabola 1
+    def reflect_vert(this, ray_only, simpleView, isPlot): # parabola 1
 
         print('VERTICAL PARABOLA')
 
@@ -123,7 +123,7 @@ class Curved_Surface:
 
         return intercept, out
     
-    def tang_normal_type2(this, ray_only, simpleView, isPlot):  # parabola 2
+    def reflect_horiz(this, ray_only, simpleView, isPlot):  # parabola 2
 
         print('HORIZONTAL PARABOLA')
 
@@ -232,7 +232,7 @@ class Curved_Surface:
         return intercept, out
 
 
-class Rotated_Curved_Surface:
+class Rotated_Parabola:
     def __init__(someobj,a,b,c,initialPoint,directionVec):
         someobj.a = a
         someobj.b = b
@@ -240,7 +240,7 @@ class Rotated_Curved_Surface:
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
-    def tang_normal_type1(this, ray_only, simpleView, isPlot):
+    def reflect(this, ray_only, simpleView, isPlot):
 
         print('ROTATED PARABOLA')
 
@@ -346,7 +346,7 @@ class Rotated_Curved_Surface:
         return intercept, out
 
 
-class Plane_Surface:
+class Linear:
 
     def __init__(someobj,a,b,initialPoint,directionVec):
         someobj.a = a
@@ -354,7 +354,7 @@ class Plane_Surface:
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
-    def tang_normal_type3(this, ray_only, simpleView, isPlot):
+    def reflect(this, ray_only, simpleView, isPlot):
 
         print('PLANE')
 
@@ -440,7 +440,7 @@ class Plane_Surface:
         return intercept, out
 
 
-class Rotated_Plane_Surface:
+class Vector_Linear:
 
     def __init__(someobj,initialPoint,directionVec,surfPoint,surfDir):
         someobj.initPoint = initialPoint
@@ -448,7 +448,7 @@ class Rotated_Plane_Surface:
         someobj.surfPoint = surfPoint
         someobj.surfDir = surfDir   
 
-    def tang_normal_type3(this, ray_only, simpleView, isPlot):
+    def reflect(this, ray_only, simpleView, isPlot):
 
         print('PLANE')
 
@@ -530,7 +530,7 @@ class Rotated_Plane_Surface:
         return intercept, out
 
     
-class Hyperbola_Curve:
+class Hyperbola:
 
     def __init__(someobj,a,b,h,k,initialPoint,directionVec):
         someobj.a = a
@@ -540,7 +540,7 @@ class Hyperbola_Curve:
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
-    def tang_normal_type4(this, ray_only, simpleView, isPlot):
+    def reflect(this, ray_only, simpleView, isPlot):
 
         print('HYPERBOLA')
 
@@ -643,7 +643,7 @@ class Hyperbola_Curve:
         return intercept, out
 
 
-class Rotated_Hyperbola_Curve:
+class Rotated_Hyperbola:
 
     def __init__(someobj,a,b,h,k,initialPoint,directionVec):
         someobj.a = a
@@ -653,7 +653,7 @@ class Rotated_Hyperbola_Curve:
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
-    def tang_normal_type4(this, ray_only, simpleView, isPlot):
+    def reflect(this, ray_only, simpleView, isPlot):
 
         print('ROTATED HYPERBOLA')
 
@@ -778,7 +778,7 @@ class Ellipse:
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
-    def tang_normal_type5(this, ray_only, simpleView, isPlot):
+    def reflect(this, ray_only, simpleView, isPlot):
 
         print('ELLIPSE')
 
@@ -895,7 +895,7 @@ class Rotated_Ellipse:
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
-    def tang_normal_type5(this, ray_only, simpleView, isPlot):
+    def reflect(this, ray_only, simpleView, isPlot):
 
         print('ROTATED ELLIPSE')
 
@@ -948,6 +948,7 @@ class Rotated_Ellipse:
 
 
         ##Find where ray and curve intersect
+        #Can this be generalized?
         a_term = (((b**2)*(initDir[0]**2)*(cos**2)) + ((a**2)*(initDir[0]**2)*(sin**2)) 
             - (2*(b**2)*initDir[0]*initDir[1]*cos*sin) + (2*(a**2)*initDir[0]*initDir[1]*cos*sin) 
             + ((b**2)*(initDir[1]**2)*(sin**2)) + ((a**2)*(initDir[1]**2)*(cos**2)))
@@ -1017,52 +1018,3 @@ class Rotated_Ellipse:
             plt.show()
 
         return intercept, out
-
-
-##Settings for how to show plot(s)
-raysOnly = True
-simpleView = False
-indivPlots = False
-
-# curv1 = Curved_Surface(1,-2,-5,np.array([-2,-2]),np.array([1,2])) #a,b,c,initPoint,initDir
-# nextPoint,nextDir = curv1.tang_normal_type1(raysOnly, simpleView, indivPlots)	
-
-# curv2 = Curved_Surface(1,2,4,np.array([-6,-2]),np.array([9,1])) 
-# nextPoint,nextDir = curv2.tang_normal_type2(raysOnly, simpleView, indivPlots)
-
-# curv3 = Rotated_Curved_Surface(1,-2,-5,np.array([-2,-2]),np.array([1,2])) #a,b,c,initPoint,initDir
-# nextPoint,nextDir = curv3.tang_normal_type1(raysOnly, simpleView, indivPlots)	
-
-# curv3 = Plane_Surface(1,0,np.array([-1,-3]),np.array([1,2])) #a,b,initPoint,initDir
-# nextPoint,nextDir = curv3.tang_normal_type3(raysOnly, simpleView, indivPlots)
-
-# curv4 = Hyperbola_Curve(1,2,1,3,np.array([1,-2]),np.array([1,4])) #a,b,h,k,initPoint,initDir
-# nextPoint,nextDir = curv4.tang_normal_type4(raysOnly, simpleView, indivPlots)
-
-# curv4 = Rotated_Hyperbola_Curve(1,2,1,3,np.array([1,-2]),np.array([1,4]))
-# nextPoint,nextDir = curv4.tang_normal_type4(raysOnly, simpleView, indivPlots)
-
-# curv5 = Ellipse(1,2,1,3, np.array([0,0]),np.array([1,4])) 
-# nextPoint,nextDir = curv5.tang_normal_type5(raysOnly, simpleView, indivPlots)
-
-curv5 = Rotated_Ellipse(1,2,-1,3, np.array([0,0]),np.array([1,4])) 
-nextPoint,nextDir = curv5.tang_normal_type5(raysOnly, simpleView, indivPlots)
-
-# curv3 = Plane_Surface(-3,5,nextPoint,nextDir) #a,b,initPoint,initDir
-# nextPoint,nextDir = curv3.tang_normal_type3(raysOnly, simpleView, indivPlots)
-
-# curv4 = Rotated_Hyperbola_Curve(3,2,1,3,nextPoint,nextDir)
-# nextPoint,nextDir = curv4.tang_normal_type4(raysOnly, simpleView, indivPlots)
-
-
-if not(indivPlots):
-    t = np.linspace(0, 10, 500)
-    plt.plot(nextPoint[0] + t*nextDir[0], nextPoint[1] + t*nextDir[1],'green')
-
-    ##Print plot
-    plt.grid(color='lightgray',linestyle='--')
-    plt.xlim(-10, 10)
-    plt.ylim(-10, 10)
-    plt.gca().set_aspect('equal', adjustable='box')
-    # plt.savefig('/Users/epeairs/Desktop/chain3.pdf', bbox_inches='tight')
-    plt.show()
