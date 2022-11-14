@@ -818,6 +818,9 @@ class Ellipse:
         hypx, hypy = np.meshgrid(x, hyp)
         plt.contour(hypx, hypy,(((hypx - h)**2)/a**2 + ((hypy - k)**2)/b**2), [1], colors='red')
 
+        # t = np.linspace(0, 2*math.pi, 100)
+        # plt.plot(h + a*np.cos(t), k + b*np.sin(t), 'red')
+
 
         ##Find where ray and curve intersect
         a_term = (b**2) * (initDir[0]**2) + (a**2) * (initDir[1]**2)
@@ -937,9 +940,11 @@ class Rotated_Ellipse:
         hyp = np.linspace(-10, 10, 1000)
         hypx, hypy = np.meshgrid(x, hyp)
         plt.contour(hypx, hypy,((b**2) * (((hypy * sin) - (hypx * cos) + h)**2) + (a**2) * (((hypy * cos) + (hypx * sin) - k)**2) - ((a**2) * (b**2))), [0], colors='red')
-
+        
         #Ellipse rotated in 'correct' direction
         plt.contour(hypx, hypy,((b**2) * (((hypx - h) * cos + (hypy - k) * sin)**2) + (a**2) * (((hypx - h) * sin - (hypy - k) * cos)**2) - ((a**2) * (b**2))), [0], colors='purple')
+        # t = np.linspace(0, 2*math.pi, 100)
+        # plt.plot(h + a*np.cos(t), k + b*np.sin(t), 'red')
 
 
         ##Find where ray and curve intersect

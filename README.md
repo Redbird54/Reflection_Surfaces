@@ -48,4 +48,7 @@ Added in gradients of curve at the intercept points. This is done using an impor
 Rotation of parabola, ellipse, and hyperbola completed. Are they rotating the "correct" direction? See ellipse for example
 
 Week 9: Goals: Confirm different parabola forms are same, implement paper, continue to check physics of lens.
+Added a flag in Refractions for when surface is part of lens or not to make more readable.
+Different parabola forms are the same. In fact, the current form is *more* useful for rotation (for ellipse we change to form Ax^x + BXY + Cy^2 + Dx + Ey + F=0).
+Added in Sneha's 3D models.
 --> 
