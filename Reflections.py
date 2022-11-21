@@ -267,7 +267,7 @@ class Rotated_Parabola:
         print("Equation of curve,  y =", a,"x^2 +", b,"x +", c)
         hyp = np.linspace(-10, 10, 1000)
         hypx, hypy = np.meshgrid(x, hyp)
-        plt.contour(hypx, hypy,((a*(hypx**2)*(cos(theta)**2)) + (a*(hypy**2)*(sin(theta)**2)) - (2*a*hypx*hypy*cos(theta)*sin(theta)) + (b*hypx*cos(theta)) - (b*hypy*sin(theta)) - (hypx*sin(theta)) - (hypy*cos(theta)) + c), [0], colors='red')
+        plt.contour(hypx, hypy,((a*(hypx**2)*(cos**2)) + (a*(hypy**2)*(sin**2)) - (2*a*hypx*hypy*cos*sin) + (b*hypx*cos) - (b*hypy*sin) - (hypx*sin) - (hypy*cos) + c), [0], colors='red')
         
         ##Find where ray and curve intersect
         a_term = a * (((initDir[0]**2) * (cos**2)) + ((initDir[1]**2) * (sin**2)) - (2 * initDir[0] * initDir[1] * cos * sin))
@@ -785,8 +785,8 @@ class Ellipse:
         hypx, hypy = np.meshgrid(x, hyp)
         plt.contour(hypx, hypy,(((hypx - h)**2)/a**2 + ((hypy - k)**2)/b**2), [1], colors='red')
 
-        # t = np.linspace(0, 2*math.pi, 100)
-        # plt.plot(h + a*np.cos(t), k + b*np.sin(t), 'red')
+        t = np.linspace(0, 2*math.pi, 100)
+        plt.plot(h + a*np.cos(t), k + b*np.sin(t), 'red')
 
 
         ##Find where ray and curve intersect
