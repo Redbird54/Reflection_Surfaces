@@ -633,11 +633,12 @@ class Hyperbola:
 
 class Rotated_Hyperbola:
 
-    def __init__(someobj,a,b,h,k,initialPoint,directionVec):
+    def __init__(someobj,a,b,h,k,theta,initialPoint,directionVec):
         someobj.a = a
         someobj.b = b
         someobj.h = h
         someobj.k = k
+        someobj.theta = theta
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
@@ -651,14 +652,13 @@ class Rotated_Hyperbola:
         k = this.k
         initPoint = this.initPoint
         initDir = this.initDir
-        theta = math.pi/3
-        sin = math.sin(theta)
-        cos = math.cos(theta)
+        sin = math.sin(this.theta)
+        cos = math.cos(this.theta)
+
+        # def func1(x): 
+        #     return (b**2) * (((x[1] * sin) - (x[0] * cos) + h)**2) - (a**2) * (((x[1] * cos) + (x[0] * sin) - k)**2) - ((a**2) * (b**2))
 
         def func(x): 
-            return (b**2) * (((x[1] * sin) - (x[0] * cos) + h)**2) - (a**2) * (((x[1] * cos) + (x[0] * sin) - k)**2) - ((a**2) * (b**2))
-
-        def func1(x): 
             return (b**2)*(((x[0] * cos) + (x[1] * sin) - h)**2) - (a**2)*(((x[1] * cos) - (x[0] * sin) - k)**2) - (a**2)*(b**2)
 
         if isPlot:
@@ -678,9 +678,9 @@ class Rotated_Hyperbola:
         print("Equation of curve,  0 =", b*b,"x^2 +", -a*a,"y^2 +", -2*b*b*h,"x +", 2*a*a*k,"y +", b*b*h*h - a*a*k*k - a*a*b*b)	
         hyp = np.linspace(-10, 10, 1000)
         hypx, hypy = np.meshgrid(x, hyp)
-        plt.contour(hypx, hypy,((b**2) * (((hypy * sin) - (hypx * cos) + h)**2) - (a**2) * (((hypy * cos) + (hypx * sin) - k)**2) - ((a**2) * (b**2))), [0], colors='red')
+        # plt.contour(hypx, hypy,((b**2) * (((hypy * sin) - (hypx * cos) + h)**2) - (a**2) * (((hypy * cos) + (hypx * sin) - k)**2) - ((a**2) * (b**2))), [0], colors='red')
 
-        plt.contour(hypx, hypy,((b**2)*(((hypx * cos) + (hypy * sin) - h)**2) - (a**2)*(((hypy * cos) - (hypx * sin) - k)**2) - (a**2)*(b**2)), [0], colors='purple')
+        plt.contour(hypx, hypy,((b**2)*(((hypx * cos) + (hypy * sin) - h)**2) - (a**2)*(((hypy * cos) - (hypx * sin) - k)**2) - (a**2)*(b**2)), [0], colors='red')
 
         ##Find where ray and curve intersect
         a_term = (((b**2)*(initDir[0]**2)*(cos**2)) - ((a**2)*(initDir[0]**2)*(sin**2)) 
@@ -866,11 +866,12 @@ class Ellipse:
 
 class Rotated_Ellipse:
 
-    def __init__(someobj,a,b,h,k,initialPoint,directionVec):
+    def __init__(someobj,a,b,h,k,theta,initialPoint,directionVec):
         someobj.a = a
         someobj.b = b
         someobj.h = h
         someobj.k = k
+        someobj.theta = theta
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
 
@@ -884,9 +885,8 @@ class Rotated_Ellipse:
         k = this.k
         initPoint = this.initPoint
         initDir = this.initDir
-        theta = math.pi/3
-        sin = math.sin(theta)
-        cos = math.cos(theta)
+        sin = math.sin(this.theta)
+        cos = math.cos(this.theta)
 
         def func(x): 
             return (b**2) * (((x[1] * sin) - (x[0] * cos) + h)**2) + (a**2) * (((x[1] * cos) + (x[0] * sin) - k)**2) - ((a**2) * (b**2))
