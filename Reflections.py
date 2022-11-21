@@ -241,12 +241,20 @@ class Rotated_Parabola:
         c = this.c
         initPoint = this.initPoint
         initDir = this.initDir
-        theta = math.pi/2
+        theta = 2*math.pi/5
         sin = math.sin(theta)
         cos = math.cos(theta)
+        h = -b/(2*a)
+        k = c - (b**2)/4
 
         def func(x): 
             return (a*(x[0]**2)*(cos**2)) + (a*(x[1]**2)*(sin**2)) - (2*a*x[0]*x[1]*cos*sin) + (b*x[0]*cos) - (b*x[1]*sin) - (x[0]*sin) - (x[1]*cos) + c
+
+        def func2(x): 
+            return (a*(x[0]**2)*(cos**2)) + (a*(x[1]**2)*(sin**2)) + (2*a*x[0]*x[1]*cos*sin) + (b*x[0]*cos) + (b*x[1]*sin) + (x[0]*sin) - (x[1]*cos) + c
+
+        def func3(x): 
+            return (a*(x[0]**2)*(cos**2)) + (a*(x[1]**2)*(sin**2)) + (2*a*x[0]*x[1]*cos*sin) + (x[0]*cos * (-2*a*h*cos - 2*a*k*sin)) + (x[1]*sin * (-2*a*h*cos - 2*a*k*sin)) + (x[0]*sin) - (x[1]*cos) + (a*h*h*cos*cos + 2*a*h*k*cos*sin + a*k*k*sin*sin - h*sin + k*cos)
 
         if isPlot:
             plt.grid(color='lightgray',linestyle='--')
@@ -268,6 +276,8 @@ class Rotated_Parabola:
         hyp = np.linspace(-10, 10, 1000)
         hypx, hypy = np.meshgrid(x, hyp)
         plt.contour(hypx, hypy,((a*(hypx**2)*(cos**2)) + (a*(hypy**2)*(sin**2)) - (2*a*hypx*hypy*cos*sin) + (b*hypx*cos) - (b*hypy*sin) - (hypx*sin) - (hypy*cos) + c), [0], colors='red')
+        plt.contour(hypx, hypy,((a*(hypx**2)*(cos**2)) + (a*(hypy**2)*(sin**2)) + (2*a*hypx*hypy*cos*sin) + (b*hypx*cos) + (b*hypy*sin) + (hypx*sin) - (hypy*cos) + c), [0], colors='purple')
+        plt.contour(hypx, hypy,((a*(hypx**2)*(cos**2)) + (a*(hypy**2)*(sin**2)) + (2*a*hypx*hypy*cos*sin) + (hypx*cos * (-2*a*h*cos - 2*a*k*sin)) + (hypy*sin * (-2*a*h*cos - 2*a*k*sin)) + (hypx*sin) - (hypy*cos) + (a*h*h*cos*cos + 2*a*h*k*cos*sin + a*k*k*sin*sin - h*sin + k*cos)), [0], colors='brown')
         
         ##Find where ray and curve intersect
         a_term = a * (((initDir[0]**2) * (cos**2)) + ((initDir[1]**2) * (sin**2)) - (2 * initDir[0] * initDir[1] * cos * sin))
@@ -301,10 +311,48 @@ class Rotated_Parabola:
 
         print('Point of intersection: (', intercept[0], ', ', intercept[1], ')')
 
+    #######
+        # a_term = a * (((initDir[0]**2) * (cos**2)) + ((initDir[1]**2) * (sin**2)) + (2 * initDir[0] * initDir[1] * cos * sin))
+        # b_term = ((2 * a * initPoint[0] * initDir[0]*(cos**2)) + (2 * a * initPoint[1] * initDir[1]*(sin**2)) 
+        #     + (2 * a * initPoint[1] * initDir[0] * cos * sin) + (2 * a * initPoint[0] * initDir[1] * cos * sin) 
+        #     + (b * initDir[0] * cos) + (b * initDir[1] * sin) + (initDir[0] * sin) - (initDir[1] * cos))
+        # c_term = ((a * (initPoint[0]**2) * (cos**2)) + (a * (initPoint[1]**2) * (sin**2)) 
+        #     + (2 * a * initPoint[0] * initPoint[1] * cos * sin) + (b * initPoint[0] * cos) 
+        #     + (b * initPoint[1] * sin) + (initPoint[0] * sin) - (initPoint[1] * cos) + c)
+        # if b_term*b_term - 4 * a_term * c_term < 0:
+        #     print('No intercept')
+        #     if isPlot:
+        #         plt.show()
+        #     return initPoint, initDir
+        # distance_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+        # distance_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+        
+        # if distance_add < 0 and distance_min < 0:
+        #     print('No intercept')
+        #     if isPlot:
+        #         plt.show()
+        #     return initPoint, initDir
+        # elif distance_add < 0:
+        #     distance_true2 = distance_min
+        # elif distance_min < 0:
+        #     distance_true2 = distance_add
+        # else:
+        #     distance_true2 = min(distance_add, distance_min)
+
+        # intercept2 = np.array([initPoint[0] + distance_true2*initDir[0], initPoint[1] + distance_true2*initDir[1]])
+
+        # print('Point of intersection2: (', intercept2[0], ', ', intercept2[1], ')')
+    ######
+
         ##Plot where the ray actually goes (initial point until intercept)
         if ray_only:
             t2 = np.linspace(0, distance_true, 100)
             plt.plot(initPoint[0] + t2*initDir[0], initPoint[1] + t2*initDir[1],'black')
+
+        ##Plot where the ray actually goes (initial point until intercept)
+        # if ray_only:
+        #     t2 = np.linspace(0, distance_true2, 100)
+        #     plt.plot(initPoint[0] + t2*initDir[0], initPoint[1] + t2*initDir[1],'black')
 
 
         ##Normal vector is gradient of function
@@ -314,6 +362,14 @@ class Rotated_Parabola:
         print("normDir: ", normDir)
         if not(ray_only) and not(simpleView):
             plt.plot(intercept[0] + x*normDir[0], intercept[1] + x*normDir[1], 'orange')
+
+        ##Normal vector is gradient of function
+        # normDir2 = nd.Gradient(func2)(intercept2)
+
+        # ##Direction of normal
+        # print("normDir2: ", normDir2)
+        # if not(ray_only) and not(simpleView):
+        #     plt.plot(intercept2[0] + x*normDir2[0], intercept2[1] + x*normDir2[1], 'orange')
 
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
@@ -325,6 +381,17 @@ class Rotated_Parabola:
         print("Output Direction: ", out)
         if not(ray_only):
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
+
+
+        ##Finding equation of reflected line by projecting onto norm and subtracting vectors
+        # normNorm2 = normDir2/np.linalg.norm(normDir2)
+        # #Citation 1 
+        # out2 = initDir - 2*(np.dot(initDir, normNorm2)*normNorm2)
+
+        # ##Direction of reflected line
+        # print("Output Direction2: ", out2)
+        # if not(ray_only):
+        #     plt.plot(intercept2[0] + t*out2[0], intercept2[1] + t*out2[1],'green')
 
 
         ##Print plot
@@ -536,7 +603,7 @@ class Hyperbola:
         initDir = this.initDir
 
         def func(x): 
-            return (b**2)*((x[0]-h)**2) - (a**2)*((x[1]-k)**2) -(a**2)*(b**2)
+            return (b**2)*((x[0]-h)**2) - (a**2)*((x[1]-k)**2) - (a**2)*(b**2)
 
         if isPlot:
             plt.grid(color='lightgray',linestyle='--')
@@ -641,12 +708,15 @@ class Rotated_Hyperbola:
         k = this.k
         initPoint = this.initPoint
         initDir = this.initDir
-        theta = 4*math.pi/3
+        theta = math.pi/3
         sin = math.sin(theta)
         cos = math.cos(theta)
 
         def func(x): 
             return (b**2) * (((x[1] * sin) - (x[0] * cos) + h)**2) - (a**2) * (((x[1] * cos) + (x[0] * sin) - k)**2) - ((a**2) * (b**2))
+
+        def func1(x): 
+            return (b**2)*(((x[0] * cos) + (x[1] * sin) - h)**2) - (a**2)*(((x[1] * cos) - (x[0] * sin) - k)**2) - (a**2)*(b**2)
 
         if isPlot:
             plt.grid(color='lightgray',linestyle='--')
@@ -668,6 +738,8 @@ class Rotated_Hyperbola:
         hyp = np.linspace(-10, 10, 1000)
         hypx, hypy = np.meshgrid(x, hyp)
         plt.contour(hypx, hypy,((b**2) * (((hypy * sin) - (hypx * cos) + h)**2) - (a**2) * (((hypy * cos) + (hypx * sin) - k)**2) - ((a**2) * (b**2))), [0], colors='red')
+
+        plt.contour(hypx, hypy,((b**2)*(((hypx * cos) + (hypy * sin) - h)**2) - (a**2)*(((hypy * cos) - (hypx * sin) - k)**2) - (a**2)*(b**2)), [0], colors='purple')
 
         ##Find where ray and curve intersect
         a_term = (((b**2)*(initDir[0]**2)*(cos**2)) - ((a**2)*(initDir[0]**2)*(sin**2)) 
@@ -881,6 +953,12 @@ class Rotated_Ellipse:
         def func1(x): # Equation I found online, rotates in other direction? Which is correct? (Mine matches the parabola)
             return (b**2) * (((x[0] - h) * cos + (x[1] - k) * sin)**2) + (a**2) * (((x[0] - h) * sin - (x[1] - k) * cos)**2) - ((a**2) * (b**2))
 
+        def func2(x): 
+            return (b**2) * (((x[1] * sin) + (x[0] * cos) - h)**2) + (a**2) * ((-(x[1] * cos) + (x[0] * sin) + k)**2) - ((a**2) * (b**2))
+
+        def func3(x): 
+            return (b**2) * (((x[0] * cos) + (x[1] * sin) - h)**2) + (a**2) * (((x[1] * cos) - (x[0] * sin) - k)**2) - ((a**2) * (b**2))
+
         if isPlot:
             plt.grid(color='lightgray',linestyle='--')
             plt.xlim(-10, 10)
@@ -907,74 +985,78 @@ class Rotated_Ellipse:
         # t = np.linspace(0, 2*math.pi, 100)
         # plt.plot(h + a*np.cos(t), k + b*np.sin(t), 'red')
 
+        plt.contour(hypx, hypy,(b**2) * (((hypy * sin) + (hypx * cos) - h)**2) + (a**2) * ((-(hypy * cos) + (hypx * sin) + k)**2) - ((a**2) * (b**2)), [0], colors='green')
+
+        # plt.contour(hypx, hypy,(b**2) * (((hypx * cos) + (hypy * sin) - h)**2) + (a**2) * (((hypy * cos) - (hypx * sin) - k)**2) - ((a**2) * (b**2)), [0], colors='orange')
+
 
         ##Find where ray and curve intersect
         #Can this be generalized?
-        a_term = (((b**2)*(initDir[0]**2)*(cos**2)) + ((a**2)*(initDir[0]**2)*(sin**2)) 
-            - (2*(b**2)*initDir[0]*initDir[1]*cos*sin) + (2*(a**2)*initDir[0]*initDir[1]*cos*sin) 
-            + ((b**2)*(initDir[1]**2)*(sin**2)) + ((a**2)*(initDir[1]**2)*(cos**2)))
-        b_term = 2 * (((b**2)*initPoint[0]*initDir[0]*(cos**2)) + ((a**2)*initPoint[0]*initDir[0]*(sin**2)) 
-            - ((b**2)*initPoint[1]*initDir[0]*cos*sin) - ((b**2)*initPoint[0]*initDir[1]*cos*sin) 
-            + ((a**2)*initPoint[1]*initDir[0]*cos*sin) + ((a**2)*initPoint[0]*initDir[1]*cos*sin)
-            + ((b**2)*initPoint[1]*initDir[1]*(sin**2)) + ((a**2)*initPoint[1]*initDir[1]*(cos**2))
-            - ((b**2)*h*initDir[0]*cos) - ((a**2)*k*initDir[0]*sin) + ((b**2)*h*initDir[1]*sin) - ((a**2)*k*initDir[1]*cos))
-        c_term = (((b**2)*(initPoint[0]**2)*(cos**2)) + ((a**2)*(initPoint[0]**2)*(sin**2)) 
-            - (2*(b**2)*initPoint[0]*initPoint[1]*cos*sin) + (2*(a**2)*initPoint[0]*initPoint[1]*cos*sin) 
-            + ((b**2)*(initPoint[1]**2)*(sin**2)) + ((a**2)*(initPoint[1]**2)*(cos**2)) 
-            - (2*(b**2)*h*initPoint[0]*cos) - (2*(a**2)*k*initPoint[0]*sin) + (2*(b**2)*h*initPoint[1]*sin) 
-            - (2*(a**2)*k*initPoint[1]*cos) + ((b**2)*(h**2)) + ((a**2)*(k**2)) - ((a**2)*(b**2)))
-        if b_term*b_term - 4 * a_term * c_term < 0:
-            print('No intercept')
-            if isPlot:
-                plt.show()
-            return initPoint, initDir
-        distance_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-        distance_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+        # a_term = (((b**2)*(initDir[0]**2)*(cos**2)) + ((a**2)*(initDir[0]**2)*(sin**2)) 
+        #     - (2*(b**2)*initDir[0]*initDir[1]*cos*sin) + (2*(a**2)*initDir[0]*initDir[1]*cos*sin) 
+        #     + ((b**2)*(initDir[1]**2)*(sin**2)) + ((a**2)*(initDir[1]**2)*(cos**2)))
+        # b_term = 2 * (((b**2)*initPoint[0]*initDir[0]*(cos**2)) + ((a**2)*initPoint[0]*initDir[0]*(sin**2)) 
+        #     - ((b**2)*initPoint[1]*initDir[0]*cos*sin) - ((b**2)*initPoint[0]*initDir[1]*cos*sin) 
+        #     + ((a**2)*initPoint[1]*initDir[0]*cos*sin) + ((a**2)*initPoint[0]*initDir[1]*cos*sin)
+        #     + ((b**2)*initPoint[1]*initDir[1]*(sin**2)) + ((a**2)*initPoint[1]*initDir[1]*(cos**2))
+        #     - ((b**2)*h*initDir[0]*cos) - ((a**2)*k*initDir[0]*sin) + ((b**2)*h*initDir[1]*sin) - ((a**2)*k*initDir[1]*cos))
+        # c_term = (((b**2)*(initPoint[0]**2)*(cos**2)) + ((a**2)*(initPoint[0]**2)*(sin**2)) 
+        #     - (2*(b**2)*initPoint[0]*initPoint[1]*cos*sin) + (2*(a**2)*initPoint[0]*initPoint[1]*cos*sin) 
+        #     + ((b**2)*(initPoint[1]**2)*(sin**2)) + ((a**2)*(initPoint[1]**2)*(cos**2)) 
+        #     - (2*(b**2)*h*initPoint[0]*cos) - (2*(a**2)*k*initPoint[0]*sin) + (2*(b**2)*h*initPoint[1]*sin) 
+        #     - (2*(a**2)*k*initPoint[1]*cos) + ((b**2)*(h**2)) + ((a**2)*(k**2)) - ((a**2)*(b**2)))
+        # if b_term*b_term - 4 * a_term * c_term < 0:
+        #     print('No intercept')
+        #     if isPlot:
+        #         plt.show()
+        #     return initPoint, initDir
+        # distance_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+        # distance_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
 
-        if distance_add < 0 and distance_min < 0:
-            print('No intercept')
-            if isPlot:
-                plt.show()
-            return initPoint, initDir
-        elif distance_add < 0:
-            distance_true = distance_min
-        elif distance_min < 0:
-            distance_true = distance_add
-        else:
-            distance_true = min(distance_add, distance_min)
+        # if distance_add < 0 and distance_min < 0:
+        #     print('No intercept')
+        #     if isPlot:
+        #         plt.show()
+        #     return initPoint, initDir
+        # elif distance_add < 0:
+        #     distance_true = distance_min
+        # elif distance_min < 0:
+        #     distance_true = distance_add
+        # else:
+        #     distance_true = min(distance_add, distance_min)
 
-        intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
+        # intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
 
-        print('Point of intersection: (', intercept[0], ', ', intercept[1], ')')
+        # print('Point of intersection: (', intercept[0], ', ', intercept[1], ')')
 
-        ##Plot where the ray actually goes (initial point until intercept)
-        if ray_only:
-            t2 = np.linspace(0, distance_true, 100)
-            plt.plot(initPoint[0] + t2*initDir[0], initPoint[1] + t2*initDir[1],'black')
-
-
-        ##Normal vector is gradient of function
-        normDir = nd.Gradient(func)(intercept)
-
-        ##Direction of normal
-        print("normDir: ", normDir)
-        if not(ray_only) and not(simpleView):
-            plt.plot(intercept[0] + x*normDir[0], intercept[1] + x*normDir[1], 'orange')	
+        # ##Plot where the ray actually goes (initial point until intercept)
+        # if ray_only:
+        #     t2 = np.linspace(0, distance_true, 100)
+        #     plt.plot(initPoint[0] + t2*initDir[0], initPoint[1] + t2*initDir[1],'black')
 
 
-        ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        normNorm = normDir/np.linalg.norm(normDir)
-        #Citation 1 
-        out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
+        # ##Normal vector is gradient of function
+        # normDir = nd.Gradient(func)(intercept)
 
-        ##Direction of reflected line
-        print("Output Direction: ", out)
-        if not(ray_only):
-            plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
+        # ##Direction of normal
+        # print("normDir: ", normDir)
+        # if not(ray_only) and not(simpleView):
+        #     plt.plot(intercept[0] + x*normDir[0], intercept[1] + x*normDir[1], 'orange')	
+
+
+        # ##Finding equation of reflected line by projecting onto norm and subtracting vectors
+        # normNorm = normDir/np.linalg.norm(normDir)
+        # #Citation 1 
+        # out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
+
+        # ##Direction of reflected line
+        # print("Output Direction: ", out)
+        # if not(ray_only):
+        #     plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
         
 
         ##Print plot
         if isPlot:
             plt.show()
 
-        return intercept, out
+        # return intercept, out
