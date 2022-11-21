@@ -2,20 +2,19 @@ from Reflections import *
 
 ##Settings for how to show plot(s)
 raysOnly = True
-simpleView = False
 indivPlots = False
 
 nextPoint,nextDir = np.array([0,0]),np.array([1,4])
 
 
 curv = Rotated_Ellipse(1,2,-5,3, nextPoint, nextDir) 
-nextPoint,nextDir = curv.reflect(raysOnly, simpleView, indivPlots)
+nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
 
 curv = Linear(-3,5,nextPoint,nextDir)
-nextPoint,nextDir = curv.reflect(raysOnly, simpleView, indivPlots)
+nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
 
 curv = Rotated_Hyperbola(3,2,1,3,nextPoint,nextDir)
-nextPoint,nextDir = curv.reflect(raysOnly, simpleView, indivPlots)
+nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
 
 
 if not(indivPlots):
