@@ -7,7 +7,7 @@ indivPlots = False
 nextPoint,nextDir = np.array([0,0]),np.array([1,4])
 
 
-curv = Rotated_Ellipse(1,2,-5,3,math.pi/3,nextPoint, nextDir) 
+curv = Rotated_Ellipse(1,2,-1,3,math.pi/3,nextPoint, nextDir) 
 nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
 
 curv = Linear(-3,5,nextPoint,nextDir)
