@@ -118,7 +118,7 @@ class Parabola:
 
 class Linear:
 
-    def __init__(someobj,a,b,initialPoint,directionVec,surfPoint,surfDir):
+    def __init__(someobj,a,b,initialPoint,directionVec):
         someobj.initPoint = initialPoint
         someobj.initDir = directionVec
         someobj.surfPoint = np.array([0,b])
