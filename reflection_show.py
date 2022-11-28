@@ -3,20 +3,34 @@ from Reflections import *
 ##Settings for how to show plot(s)
 raysOnly = True
 indivPlots = False
+interactions = 4
+
 
 nextPoint,nextDir = np.array([0,0]),np.array([1,4])
+objs = []
 
-curv = Ellipse(1,2,0,2,nextPoint, nextDir,math.pi/3) 
-nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
+objs.append(Ellipse(1,2,-1,3,math.pi/3))
+objs.append(Hyperbola(3,2,1,3,math.pi/3))
+objs.append(Linear(a=-3, b=5))
+# objs.append(Linear(point=np.array([0,5]), dir=np.array([1,-3]))
+objs.append(Parabola(1,4,-3,math.pi/3))
 
-curv = Hyperbola(3,2,1,3,nextPoint,nextDir,math.pi/3)
-nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
+for x in range(interactions):
+    distSmall = -1
+    currObj = Object()
+    for obj in objs:
+        dist = obj.get_distance(nextPoint,nextDir)
+        if distSmall == -1 and dist > 0:
+            distSmall = dist
+            currObj = obj
+        elif dist == -1:
+            distSmall = distSmall
+        else:
+            if dist < distSmall:
+                distSmall = dist
+                currObj = obj
 
-curv = Linear(nextPoint,nextDir, a=-3, b=5)
-nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
-
-curv = Parabola(1,4,-3,nextPoint,nextDir,math.pi/3)
-nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
+    nextPoint,nextDir = currObj.reflect(distSmall, nextPoint, nextDir, raysOnly, indivPlots)
 
 
 if not(indivPlots):
