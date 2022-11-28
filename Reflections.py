@@ -7,13 +7,13 @@ import numdifftools as nd
 
 
 class Parabola:
-    def __init__(someobj,a,h,k,initialPoint,directionVec,theta=0):
-        someobj.a = a
-        someobj.h = h
-        someobj.k = k
-        someobj.theta = theta
-        someobj.initPoint = initialPoint
-        someobj.initDir = directionVec
+    def __init__(self,a,h,k,initialPoint,directionVec,theta=0):
+        self.a = a
+        self.h = h
+        self.k = k
+        self.theta = theta
+        self.initPoint = initialPoint
+        self.initDir = directionVec
 
     def reflect(this, ray_only, isPlot):
 
@@ -118,11 +118,26 @@ class Parabola:
 
 class Linear:
 
-    def __init__(someobj,a,b,initialPoint,directionVec):
-        someobj.initPoint = initialPoint
-        someobj.initDir = directionVec
-        someobj.surfPoint = np.array([0,b])
-        someobj.surfDir = np.array([1,a])   
+    def __init__(self,initialPoint,directionVec,*args, **kwargs):
+        self.initPoint = initialPoint
+        self.initDir = directionVec
+        self.surfPoint = np.array([0,kwargs.get('b')])
+        self.surfDir = np.array([1,kwargs.get('a')])
+        if all(isinstance(arg, int) for arg in args) and len(args) == 2 and len(kwargs) == 0:
+            self.surfPoint = np.array([0,args[1]])
+            self.surfDir = np.array([1,args[0]])
+        elif all(isinstance(arg, np.ndarray) for arg in args) and len(args) == 2 and len(kwargs) == 0:
+            self.surfPoint = args[0]
+            self.surfDir = args[1]
+        elif kwargs.get('a') and kwargs.get('b') and len(args) == 0 and len(kwargs) == 2:
+            self.surfPoint = np.array([0,kwargs.get('b')])
+            self.surfDir = np.array([1,kwargs.get('a')])
+        elif isinstance(kwargs.get('point'), np.ndarray) and isinstance(kwargs.get('dir'), np.ndarray) and len(args) == 0 and len(kwargs) == 2:
+            self.surfPoint = kwargs.get('point')
+            self.surfDir = kwargs.get('dir')
+        else:
+            raise ValueError("Unsupported linear format")
+
 
     def reflect(this, ray_only, isPlot):
 
@@ -206,14 +221,14 @@ class Linear:
 
 class Hyperbola:
 
-    def __init__(someobj,a,b,h,k,initialPoint,directionVec,theta=0):
-        someobj.a = a
-        someobj.b = b
-        someobj.h = h
-        someobj.k = k
-        someobj.theta = theta
-        someobj.initPoint = initialPoint
-        someobj.initDir = directionVec
+    def __init__(self,a,b,h,k,initialPoint,directionVec,theta=0):
+        self.a = a
+        self.b = b
+        self.h = h
+        self.k = k
+        self.theta = theta
+        self.initPoint = initialPoint
+        self.initDir = directionVec
 
     def reflect(this, ray_only, isPlot):
 
@@ -329,14 +344,14 @@ class Hyperbola:
 
 class Ellipse:
 
-    def __init__(someobj,a,b,h,k,initialPoint,directionVec,theta=0):
-        someobj.a = a
-        someobj.b = b
-        someobj.h = h
-        someobj.k = k
-        someobj.theta = theta
-        someobj.initPoint = initialPoint
-        someobj.initDir = directionVec
+    def __init__(self,a,b,h,k,initialPoint,directionVec,theta=0):
+        self.a = a
+        self.b = b
+        self.h = h
+        self.k = k
+        self.theta = theta
+        self.initPoint = initialPoint
+        self.initDir = directionVec
 
     def reflect(this, ray_only, isPlot):
 

@@ -6,14 +6,16 @@ indivPlots = False
 
 nextPoint,nextDir = np.array([0,0]),np.array([1,4])
 
-
-curv = Rotated_Ellipse(1,2,-1,3,math.pi/3,nextPoint, nextDir) 
+curv = Ellipse(1,2,0,2,nextPoint, nextDir,math.pi/3) 
 nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
 
-curv = Linear(-3,5,nextPoint,nextDir)
+curv = Hyperbola(3,2,1,3,nextPoint,nextDir,math.pi/3)
 nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
 
-curv = Rotated_Hyperbola(3,2,1,3,math.pi/3,nextPoint,nextDir)
+curv = Linear(nextPoint,nextDir, a=-3, b=5)
+nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
+
+curv = Parabola(1,4,-3,nextPoint,nextDir,math.pi/3)
 nextPoint,nextDir = curv.reflect(raysOnly, indivPlots)
 
 
