@@ -15,6 +15,7 @@ initialObjs.append(Linear(0, 5, a=-3, b=5))
 # initialObjs.append(Linear(0,5,point=np.array([0,5]), dir=np.array([1,-3]))
 initialObjs.append(Parabola(1,5,-3,math.pi/3))
 
+objs = initialObjs
 
 for obj in initialObjs:
     if not(objs):
@@ -22,8 +23,8 @@ for obj in initialObjs:
     else:
         notOverlap = True
         for x in range(len(objs)):
-            currCent = [abs(a - b) >= 5 for a, b in zip(obj.get_center(), objs[x].get_center())]
-            if not(all(currCent)):
+            centerDiff = [abs(a - b) >= 5 for a, b in zip(obj.get_center(), objs[x].get_center())]
+            if not(any(centerDiff)):
                 notOverlap = False
         if notOverlap:
             objs.append(obj)
