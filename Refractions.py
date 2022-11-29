@@ -164,7 +164,7 @@ class Lens:
             conv2 = Circular_Lens(n2,n1,this.r2,nextPoint,nextDir,np.array([this.center[0]+(this.h/2)-this.r2,this.center[1]]), False)
             nextPoint, nextDir = conv2.block_type2()
             print("Output: ", nextPoint, "+ s*", nextDir)
-            focalLength = 1/((this.n2 - 1)*((1/this.r1) + (1/this.r2)))
+            focalLength = 1/((this.n2 - 1)*((1/this.r1) + (1/this.r2) - (((this.n2-1)*this.h)/(this.n2*this.r1*this.r2))))
             print("Focal length: ", focalLength)
 
             plt.plot(nextPoint[0] + t*nextDir[0], nextPoint[1] + t*nextDir[1],'green')
