@@ -11,11 +11,9 @@ objs = []
 
 initialObjs.append(Ellipse(1,2,-1,3,math.pi/3))
 initialObjs.append(Hyperbola(3,2,1,3,math.pi/3))
-initialObjs.append(Linear(0, 5, a=-3, b=5))
-# initialObjs.append(Linear(0,5,point=np.array([0,5]), dir=np.array([1,-3]))
+initialObjs.append(Linear(8,3,1,-3))
 initialObjs.append(Parabola(1,5,-3,math.pi/3))
 
-objs = initialObjs
 
 for obj in initialObjs:
     if not(objs):
@@ -24,7 +22,7 @@ for obj in initialObjs:
         notOverlap = True
         for x in range(len(objs)):
             centerDiff = [abs(a - b) >= 5 for a, b in zip(obj.get_center(), objs[x].get_center())]
-            if not(any(centerDiff)):
+            if not(any(centerDiff)) or obj.crosses_box_boundary(objs[x].get_center()):
                 notOverlap = False
         if notOverlap:
             objs.append(obj)

@@ -59,14 +59,41 @@ class Parabola(Object):
 
         return distance_true
 
+    def crosses_box_boundary(self, boxcenter):
+        a = self.a
+        h = self.h
+        k = self.k
+        sin = math.sin(self.theta)
+        cos = math.cos(self.theta)
+        x_tests = [boxcenter[0]-2.5, boxcenter[0]+2.5]
+        y_tests = [boxcenter[1]-2.5, boxcenter[1]+2.5]
+
+        for x in x_tests:
+            a_term = a*(sin**2)
+            b_term = 2*a*sin*((x-h)*cos - k*sin) - cos
+            c_term = a*(((x-h)*cos - k*sin)**2) + (x-h)*sin + k*cos
+            if not(b_term*b_term - 4 * a_term * c_term < 0):
+                y_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                y_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
+                    return True
+            
+        for y in y_tests:
+            a_term = a*(cos**2)
+            b_term = 2*a*cos*(-h*cos + (y-k)*sin) + sin
+            c_term = a*((-h*cos + (y-k)*sin)**2) - h*sin - (y-k)*cos 
+            if not(b_term*b_term - 4 * a_term * c_term < 0):
+                x_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                x_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)    
+                if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
+                    return True
+        return False
+
     def func(self, x):
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
-        return ((self.a*(x[0]**2)*(cos**2)) + (self.a*(x[1]**2)*(sin**2)) 
-            + (2*self.a*x[0]*x[1]*cos*sin) + (x[0]*cos * -2 * (self.a*self.h*cos + self.a*self.k*sin)) 
-            + (x[1]*sin * -2*(self.a*self.h*cos + self.a*self.k*sin)) + (x[0]*sin) - (x[1]*cos) 
-            + (self.a*(self.h**2)*(cos**2) + 2*self.a*self.h*self.k*cos*sin + self.a*(self.k**2)*(sin**2) 
-            - self.h*sin + self.k*cos))
+        return (self.a*(((x[0]-self.h)*cos + (x[1]-self.k)*sin)**2) + (x[0]-self.h)*sin - (x[1]-self.k)*cos)
+
 
     def reflect(self, dist, initPoint, initDir, isPlot):
 
@@ -93,7 +120,7 @@ class Parabola(Object):
 
         ##Equation of curve
         print("Equation of curve,  y =", a,"(x - ", h,")^2 +", k)
-        plt.contour(hypx, hypy,((a*(hypx**2)*(cos**2)) + (a*(hypy**2)*(sin**2)) + (2*a*hypx*hypy*cos*sin) + (hypx*cos * (-2*a*h*cos - 2*a*k*sin)) + (hypy*sin * (-2*a*h*cos - 2*a*k*sin)) + (hypx*sin) - (hypy*cos) + (a*h*h*cos*cos + 2*a*h*k*cos*sin + a*k*k*sin*sin - h*sin + k*cos)), [0], colors='red')
+        plt.contour(hypx, hypy,(a*(((hypx-h)*cos + (hypy-k)*sin)**2) + (hypx-h)*sin - (hypy-k)*cos), [0], colors='red')
 
 
         print("Ray Direction: ", initDir[0], initDir[1])
@@ -127,6 +154,25 @@ class Parabola(Object):
         if isPlot:
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
 
+        # PLOT CRYPTO RECTANGLE 
+        point1 = [h+2.5, k-2.5] # br
+        point2 = [h+2.5, k+2.5] # tr
+        point3 = [h-2.5, k-2.5] # bl 
+        point4 = [h-2.5, k+2.5] #tl
+       
+        x_values = [point1[0], point2[0]] #gather x-values.
+        y_values = [point1[1], point2[1]] #gather y-values.
+        x2_values = [point2[0], point4[0]] #gather x-values.
+        y2_values = [point2[1], point4[1]] #gather y-values.
+        x3_values = [point1[0], point3[0]] #gather x-values.
+        y3_values = [point1[1], point3[1]] #gather y-values.
+        x4_values = [point3[0], point4[0]] #gather x-values.
+        y4_values = [point3[1], point4[1]] #gather y-values.
+        plt.plot(x_values, y_values, color = 'blue')
+        plt.plot(x2_values, y2_values, color = 'blue')
+        plt.plot(x3_values, y3_values, color = 'blue')
+        plt.plot(x4_values, y4_values, color = 'blue')
+
 
         ##Print plot
         if isPlot:
@@ -137,25 +183,11 @@ class Parabola(Object):
 
 class Linear(Object):
 
-    def __init__(self, h, k, *args, **kwargs):
+    def __init__(self, h, k, dx, dy):
         self.h = h
         self.k = k
-        if all(isinstance(arg, int) for arg in args) and len(args) == 2 and len(kwargs) == 0:
-            self.surfPoint = np.array([0,args[1]])
-            self.surfDir = np.array([1,args[0]])
-        elif all(isinstance(arg, np.ndarray) for arg in args) and len(args) == 2 and len(kwargs) == 0:
-            self.surfPoint = args[0]
-            self.surfDir = args[1]
-        elif ((isinstance(kwargs.get('a'), float) or isinstance(kwargs.get('a'), int)) 
-            and (isinstance(kwargs.get('b'), float) or isinstance(kwargs.get('b'), int)) 
-            and len(args) == 0 and len(kwargs) == 2):
-            self.surfPoint = np.array([0,kwargs.get('b')])
-            self.surfDir = np.array([1,kwargs.get('a')])
-        elif isinstance(kwargs.get('point'), np.ndarray) and isinstance(kwargs.get('dir'), np.ndarray) and len(args) == 0 and len(kwargs) == 2:
-            self.surfPoint = kwargs.get('point')
-            self.surfDir = kwargs.get('dir')
-        else:
-            raise ValueError("Unsupported linear format")
+        self.surfPoint = np.array([h,k])
+        self.surfDir = np.array([dx,dy])
 
     def get_center(self):
         return self.h, self.k
@@ -177,9 +209,29 @@ class Linear(Object):
 
         return distance
 
+    def crosses_box_boundary(self, boxcenter):
+        x_tests = [boxcenter[0]-2.5, boxcenter[0]+2.5]
+        y_tests = [boxcenter[1]-2.5, boxcenter[1]+2.5]
+
+        for x in x_tests:
+            if not(self.surfDir[0] == 0):
+                y = self.surfPoint[1] + (x-self.surfPoint[0])*(self.surfDir[1]/self.surfDir[0])       
+                if (y >= y_tests[0] and y <= y_tests[1]):
+                    return True
+        for y in y_tests:
+            if not(self.surfDir[1] == 0):
+                x = self.surfPoint[0] + (y-self.surfPoint[1])*(self.surfDir[0]/self.surfDir[1])      
+                if (x >= x_tests[0] and x <= x_tests[1]):
+                    return True
+        return False
+
+
     def reflect(self, dist, initPoint, initDir, isPlot):
 
         print('LINEAR')
+
+        h = self.h
+        k = self.k
 
         if isPlot:
             plt.grid(color='lightgray',linestyle='--')
@@ -227,6 +279,25 @@ class Linear(Object):
         print("Output Direction: ", out)
         if isPlot:
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
+
+        # PLOT CRYPTO RECTANGLE 
+        point1 = [h+2.5, k-2.5] # br
+        point2 = [h+2.5, k+2.5] # tr
+        point3 = [h-2.5, k-2.5] # bl 
+        point4 = [h-2.5, k+2.5] #tl
+       
+        x_values = [point1[0], point2[0]] #gather x-values.
+        y_values = [point1[1], point2[1]] #gather y-values.
+        x2_values = [point2[0], point4[0]] #gather x-values.
+        y2_values = [point2[1], point4[1]] #gather y-values.
+        x3_values = [point1[0], point3[0]] #gather x-values.
+        y3_values = [point1[1], point3[1]] #gather y-values.
+        x4_values = [point3[0], point4[0]] #gather x-values.
+        y4_values = [point3[1], point4[1]] #gather y-values.
+        plt.plot(x_values, y_values, color = 'blue')
+        plt.plot(x2_values, y2_values, color = 'blue')
+        plt.plot(x3_values, y3_values, color = 'blue')
+        plt.plot(x4_values, y4_values, color = 'blue')
 
 
         ##Print plot
@@ -293,11 +364,42 @@ class Hyperbola(Object):
 
         return distance_true
 
+    def crosses_box_boundary(self, boxcenter):
+        a = self.a
+        b = self.b
+        h = self.h
+        k = self.k
+        sin = math.sin(self.theta)
+        cos = math.cos(self.theta)
+        x_tests = [boxcenter[0]-2.5, boxcenter[0]+2.5]
+        y_tests = [boxcenter[1]-2.5, boxcenter[1]+2.5]
+
+        for x in x_tests:
+            a_term = ((b**2)*(sin**2)) - ((a**2)*(cos**2)) 
+            b_term = 2 * (((b**2) * sin * ((x-h)*cos - k*sin)) + ((a**2) * cos * ((x-h)*sin + k*cos)))
+            c_term = ((b**2) * (((x-h)*cos - k*sin)**2) - (a**2) * (((x-h)*sin + k*cos)**2) - (a**2)*(b**2))
+            if not(b_term*b_term - 4 * a_term * c_term < 0):
+                y_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                y_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
+                    return True
+            
+        for y in y_tests:
+            a_term = ((b**2)*(cos**2)) + ((a**2)*(sin**2)) 
+            b_term = 2 * (((b**2) * cos * (-h*cos + (y-k)*sin)) - ((a**2) * sin * (h*sin + (y-k)*cos)))
+            c_term = ((b**2) * ((-h*cos + (y-k)*sin)**2) + (a**2) * ((h*sin + (y-k)*cos)**2) - (a**2)*(b**2)) 
+            if not(b_term*b_term - 4 * a_term * c_term < 0):
+                x_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                x_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)    
+                if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
+                    return True
+        return False
+    
     def func(self, x):
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
         return ((self.b**2) * ((((x[0] - self.h) * cos) + ((x[1] - self.k) * sin))**2) 
-            - (self.a**2)*((((x[1] - self.k) * cos) - ((x[0] - self.h) * sin))**2) 
+            - (self.a**2)*((((x[0] - self.h) * sin) - ((x[1] - self.k) * cos))**2) 
             - (self.a**2) * (self.b**2))
 
     def reflect(self, dist, initPoint, initDir, isPlot):
@@ -326,7 +428,7 @@ class Hyperbola(Object):
 
         ##Equation of curve
         print("Equation of curve,  0 =", b*b,"x^2 +", -a*a,"y^2 +", -2*b*b*h,"x +", 2*a*a*k,"y +", b*b*h*h - a*a*k*k - a*a*b*b)
-        plt.contour(hypx, hypy,((b**2)*((((hypx-h) * cos) + ((hypy-k) * sin))**2) - (a**2)*((((hypy-k) * cos) - ((hypx-h) * sin))**2) - (a**2)*(b**2)), [0], colors='red')
+        plt.contour(hypx, hypy,((b**2)*((((hypx-h) * cos) + ((hypy-k) * sin))**2) - (a**2)*(((((hypx-h) * sin) - (hypy-k) * cos))**2) - (a**2)*(b**2)), [0], colors='red')
 
 
         print("Ray Direction: ", initDir[0], initDir[1])
@@ -359,6 +461,25 @@ class Hyperbola(Object):
         print("Output Direction: ", out)
         if isPlot:
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
+
+        # PLOT CRYPTO RECTANGLE 
+        point1 = [h+2.5, k-2.5] # br
+        point2 = [h+2.5, k+2.5] # tr
+        point3 = [h-2.5, k-2.5] # bl 
+        point4 = [h-2.5, k+2.5] #tl
+       
+        x_values = [point1[0], point2[0]] #gather x-values.
+        y_values = [point1[1], point2[1]] #gather y-values.
+        x2_values = [point2[0], point4[0]] #gather x-values.
+        y2_values = [point2[1], point4[1]] #gather y-values.
+        x3_values = [point1[0], point3[0]] #gather x-values.
+        y3_values = [point1[1], point3[1]] #gather y-values.
+        x4_values = [point3[0], point4[0]] #gather x-values.
+        y4_values = [point3[1], point4[1]] #gather y-values.
+        plt.plot(x_values, y_values, color = 'blue')
+        plt.plot(x2_values, y2_values, color = 'blue')
+        plt.plot(x3_values, y3_values, color = 'blue')
+        plt.plot(x4_values, y4_values, color = 'blue')
 
 
         ##Print plot
@@ -425,6 +546,38 @@ class Ellipse(Object):
             distance_true = min(distance_add, distance_min)
         
         return distance_true
+
+    def crosses_box_boundary(self, boxcenter):
+        a = self.a
+        b = self.b
+        h = self.h
+        k = self.k
+        sin = math.sin(self.theta)
+        cos = math.cos(self.theta)
+        x_tests = [boxcenter[0]-2.5, boxcenter[0]+2.5]
+        y_tests = [boxcenter[1]-2.5, boxcenter[1]+2.5]
+
+        for x in x_tests:
+            a_term = ((b**2)*(sin**2)) + ((a**2)*(cos**2)) 
+            b_term = 2 * (((b**2) * sin * ((x-h)*cos - k*sin)) - ((a**2) * cos * ((x-h)*sin + k*cos)))
+            c_term = ((b**2) * (((x-h)*cos - k*sin)**2) + (a**2) * (((x-h)*sin + k*cos)**2) - (a**2)*(b**2))
+            if not(b_term*b_term - 4 * a_term * c_term < 0):
+                y_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                y_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
+                    return True
+            
+        for y in y_tests:
+            a_term = ((b**2)*(cos**2)) + ((a**2)*(sin**2)) 
+            b_term = 2 * (((b**2) * cos * (-h*cos + (y-k)*sin)) - ((a**2) * sin * (h*sin + (y-k)*cos)))
+            c_term = ((b**2) * ((-h*cos + (y-k)*sin)**2) + (a**2) * ((h*sin + (y-k)*cos)**2) - (a**2)*(b**2)) 
+            if not(b_term*b_term - 4 * a_term * c_term < 0):
+                x_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+                x_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)    
+                if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
+                    return True
+        return False
+
 
     def func(self, x):
         sin = math.sin(self.theta)
@@ -493,6 +646,27 @@ class Ellipse(Object):
         print("Output Direction: ", out)
         if isPlot:
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
+        
+
+
+        # PLOT CRYPTO RECTANGLE 
+        point1 = [h+2.5, k-2.5] # br
+        point2 = [h+2.5, k+2.5] # tr
+        point3 = [h-2.5, k-2.5] # bl 
+        point4 = [h-2.5, k+2.5] #tl
+       
+        x_values = [point1[0], point2[0]] #gather x-values.
+        y_values = [point1[1], point2[1]] #gather y-values.
+        x2_values = [point2[0], point4[0]] #gather x-values.
+        y2_values = [point2[1], point4[1]] #gather y-values.
+        x3_values = [point1[0], point3[0]] #gather x-values.
+        y3_values = [point1[1], point3[1]] #gather y-values.
+        x4_values = [point3[0], point4[0]] #gather x-values.
+        y4_values = [point3[1], point4[1]] #gather y-values.
+        plt.plot(x_values, y_values, color = 'blue')
+        plt.plot(x2_values, y2_values, color = 'blue')
+        plt.plot(x3_values, y3_values, color = 'blue')
+        plt.plot(x4_values, y4_values, color = 'blue')
 
 
         ##Print plot
