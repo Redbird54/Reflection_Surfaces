@@ -12,7 +12,7 @@ class Object:
     def get_distance(self, initPoint, initDir):
         return -1
 
-    def reflect(self, dist, initPoint, initDir, ray_only, isPlot):
+    def reflect(self, dist, initPoint, initDir, isPlot):
         return initPoint, initDir
 
 
@@ -108,6 +108,8 @@ class Parabola(Object):
 
         ##Normal vector is gradient of function
         normDir = nd.Gradient(self.func)(intercept)
+        if np.dot(initDir, normDir) < 0:
+            normDir = -normDir
 
         ##Direction of normal
         print("normDir: ", normDir)
@@ -124,6 +126,25 @@ class Parabola(Object):
         print("Output Direction: ", out)
         if isPlot:
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
+
+        # PLOT CRYPTO RECTANGLE 
+        point1 = [h+2.5, k-2.5] # br
+        point2 = [h+2.5, k+2.5] # tr
+        point3 = [h-2.5, k-2.5] # bl 
+        point4 = [h-2.5, k+2.5] #tl
+       
+        x_values = [point1[0], point2[0]] #gather x-values.
+        y_values = [point1[1], point2[1]] #gather y-values.
+        x2_values = [point2[0], point4[0]] #gather x-values.
+        y2_values = [point2[1], point4[1]] #gather y-values.
+        x3_values = [point1[0], point3[0]] #gather x-values.
+        y3_values = [point1[1], point3[1]] #gather y-values.
+        x4_values = [point3[0], point4[0]] #gather x-values.
+        y4_values = [point3[1], point4[1]] #gather y-values.
+        plt.plot(x_values, y_values, color = 'blue')
+        plt.plot(x2_values, y2_values, color = 'blue')
+        plt.plot(x3_values, y3_values, color = 'blue')
+        plt.plot(x4_values, y4_values, color = 'blue')
 
 
         ##Print plot
@@ -205,6 +226,8 @@ class Linear(Object):
 
         ##Normal vector is gradient of function
         normDir = np.array([self.surfDir[1], -self.surfDir[0]])
+        if np.dot(initDir, normDir) < 0:
+            normDir = -normDir
         
         ##Direction of normal
         print("normDir: ", normDir)
@@ -335,6 +358,8 @@ class Hyperbola(Object):
 
         ##Normal vector is gradient of function
         normDir = nd.Gradient(self.func)(intercept)
+        if np.dot(initDir, normDir) < 0:
+            normDir = -normDir
     
         ##Direction of normal
         print("normDir: ", normDir)
@@ -467,6 +492,8 @@ class Ellipse(Object):
 
         ##Normal vector is gradient of function
         normDir = nd.Gradient(self.func)(intercept)
+        if np.dot(initDir, normDir) < 0:
+            normDir = -normDir
 
         ##Direction of normal
         print("normDir: ", normDir)
@@ -484,6 +511,27 @@ class Ellipse(Object):
         if isPlot:
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
         
+
+
+        # PLOT CRYPTO RECTANGLE 
+        point1 = [h+2.5, k-2.5] # br
+        point2 = [h+2.5, k+2.5] # tr
+        point3 = [h-2.5, k-2.5] # bl 
+        point4 = [h-2.5, k+2.5] #tl
+       
+        x_values = [point1[0], point2[0]] #gather x-values.
+        y_values = [point1[1], point2[1]] #gather y-values.
+        x2_values = [point2[0], point4[0]] #gather x-values.
+        y2_values = [point2[1], point4[1]] #gather y-values.
+        x3_values = [point1[0], point3[0]] #gather x-values.
+        y3_values = [point1[1], point3[1]] #gather y-values.
+        x4_values = [point3[0], point4[0]] #gather x-values.
+        y4_values = [point3[1], point4[1]] #gather y-values.
+        plt.plot(x_values, y_values, color = 'blue')
+        plt.plot(x2_values, y2_values, color = 'blue')
+        plt.plot(x3_values, y3_values, color = 'blue')
+        plt.plot(x4_values, y4_values, color = 'blue')
+
 
         ##Print plot
         if isPlot:
