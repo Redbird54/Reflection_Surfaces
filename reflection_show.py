@@ -1,19 +1,32 @@
 from Reflections import *
 
 ##Settings for how to show plot(s)
-raysOnly = True
 indivPlots = False
 interactions = 4
 
 
 nextPoint,nextDir = np.array([0,0]),np.array([1,4])
+initialObjs = []
 objs = []
 
-objs.append(Ellipse(1,2,-1,3,math.pi/3))
-objs.append(Hyperbola(3,2,1,3,math.pi/3))
-objs.append(Linear(a=-3, b=5))
-# objs.append(Linear(point=np.array([0,5]), dir=np.array([1,-3]))
-objs.append(Parabola(1,4,-3,math.pi/3))
+initialObjs.append(Ellipse(1,2,-1,3,math.pi/3))
+initialObjs.append(Hyperbola(3,2,1,3,math.pi/3))
+initialObjs.append(Linear(0, 5, a=-3, b=5))
+# initialObjs.append(Linear(0,5,point=np.array([0,5]), dir=np.array([1,-3]))
+initialObjs.append(Parabola(1,5,-3,math.pi/3))
+
+
+for obj in initialObjs:
+    if not(objs):
+        objs.append(obj)
+    else:
+        notOverlap = True
+        for x in range(len(objs)):
+            currCent = [abs(a - b) >= 5 for a, b in zip(obj.get_center(), objs[x].get_center())]
+            if not(all(currCent)):
+                notOverlap = False
+        if notOverlap:
+            objs.append(obj)
 
 for x in range(interactions):
     distSmall = -1
@@ -30,7 +43,7 @@ for x in range(interactions):
                 distSmall = dist
                 currObj = obj
 
-    nextPoint,nextDir = currObj.reflect(distSmall, nextPoint, nextDir, raysOnly, indivPlots)
+    nextPoint,nextDir = currObj.reflect(distSmall, nextPoint, nextDir, indivPlots)
 
 
 if not(indivPlots):
