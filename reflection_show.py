@@ -30,8 +30,6 @@ for obj in initialObjs:
             if notOverlap:
                 objs.append(obj)
 
-print("LIST:", objs)
-
 for x in range(interactions):
     distSmall = -1
     currObj = Object()
