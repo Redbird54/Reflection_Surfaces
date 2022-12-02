@@ -115,6 +115,9 @@ class Parabola(Object):
             distance_true = distance_add
         else:
             distance_true = min(distance_add, distance_min)
+            intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
+            if any(abs(intercept1-np.array([h,k])) > (self.boxsize*1.5)):
+                distance_true = max(distance_add, distance_min)
 
         intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
         if any(abs(intercept-np.array([h,k])) > (self.boxsize*1.5)):
@@ -277,6 +280,9 @@ class Hyperbola(Object):
             distance_true = distance_add
         else:
             distance_true = min(distance_add, distance_min)
+            intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
+            if any(abs(intercept1-np.array([h,k])) > (self.boxsize*1.5)):
+                distance_true = max(distance_add, distance_min)
 
         intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
 
@@ -382,6 +388,9 @@ class Ellipse(Object):
             distance_true = distance_add
         else:
             distance_true = min(distance_add, distance_min)
+            intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
+            if any(abs(intercept1-np.array([h,k])) > (self.boxsize*1.5)):
+                distance_true = max(distance_add, distance_min)
 
         intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
         if any(abs(intercept-np.array([h,k])) > (self.boxsize*1.5)):
