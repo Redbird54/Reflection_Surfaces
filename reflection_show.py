@@ -2,7 +2,7 @@ from Reflections import *
 
 ##Settings for how to show plot(s)
 indivPlots = False
-interactions = 5
+interactions = 6
 boxsize = 5
 
 
@@ -13,13 +13,14 @@ objs = []
 initialObjs.append(Ellipse(1,2,1,8,boxsize,math.pi/3))
 initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,5*math.pi/6))
 initialObjs.append(Linear(4,-9,4,3,boxsize))
-initialObjs.append(Parabola(1,15,13,boxsize,5*math.pi/3))
+initialObjs.append(Parabola(1,17,13,boxsize,5*math.pi/3))
 
 
 for obj in initialObjs:
     if not(objs):
         if any(abs(nextPoint-obj.get_center()) > (boxsize*1.5)):
             objs.append(obj)
+            obj.show_curve(indivPlots)
     else:
         if any(abs(nextPoint-obj.get_center()) > (boxsize*1.5)):
             notOverlap = True
@@ -29,6 +30,7 @@ for obj in initialObjs:
                     notOverlap = False
             if notOverlap:
                 objs.append(obj)
+                obj.show_curve(indivPlots)
 
 for x in range(interactions):
     distSmall = -1

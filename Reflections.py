@@ -42,7 +42,6 @@ class Object:
     def reflect_procedure(self, dist, initPoint, initDir, isPlot):
         ##Variable for plotting & incident ray 
         t2 = np.linspace(0, dist, 100)
-        self.show_curve(False)
 
         print("Ray Direction: ", initDir[0], initDir[1])
 
@@ -102,11 +101,9 @@ class Parabola(Object):
 
         ##Find where ray and curve intersect
         a_term = a * ((initDir[0]*cos + initDir[1]*sin)**2)
-        b_term = ((2 * a * initPoint[0] * initDir[0]*(cos**2)) + (2 * a * initPoint[1] * initDir[1]*(sin**2)) 
-            + (2 * a * initPoint[1] * initDir[0] * cos * sin) + (2 * a * initPoint[0] * initDir[1] * cos * sin) 
-            - (2 * a * initDir[0] * cos*(h*cos + k*sin)) - (2 * a * initDir[1] * sin*(h*cos + k*sin)) + (initDir[0] * sin) - (initDir[1] * cos))
-        c_term = ((a * (((initPoint[0]*cos + initPoint[1]*sin)**2) + ((h*cos + k*sin)**2)) 
-            - 2*initPoint[0]*cos*(h*cos + k*sin) - 2*initPoint[1]*sin*(h*cos + k*sin)) 
+        b_term = (2 * a * (initDir[0] * cos + initDir[1] * sin)
+            * ((initPoint[0] - h) * cos + (initPoint[1] - k) * sin) + (initDir[0] * sin) - (initDir[1] * cos))
+        c_term = (a * (((initPoint[0]-h)*cos + (initPoint[1]-k)*sin)**2)
             + ((initPoint[0]-h)*sin) - ((initPoint[1]-k)*cos))
         if b_term*b_term - 4 * a_term * c_term < 0:
             print('No intercept')
