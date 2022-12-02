@@ -20,7 +20,8 @@ for obj in initialObjs:
     if not(objs):
         if any(abs(nextPoint-obj.get_center()) > (boxsize*1.5)):
             objs.append(obj)
-            obj.show_curve(indivPlots)
+            if not(indivPlots):
+                obj.show_curve()
     else:
         if any(abs(nextPoint-obj.get_center()) > (boxsize*1.5)):
             notOverlap = True
@@ -30,7 +31,8 @@ for obj in initialObjs:
                     notOverlap = False
             if notOverlap:
                 objs.append(obj)
-                obj.show_curve(indivPlots)
+                if not(indivPlots):
+                    obj.show_curve()
 
 for x in range(interactions):
     distSmall = -1

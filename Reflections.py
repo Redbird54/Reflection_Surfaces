@@ -9,24 +9,18 @@ class Object:
     def __init__(self):
         pass
 
-    def show_curve(self, isPlot):
+    def show_curve(self):
         x = np.linspace(self.h-self.boxsize*1.5, self.h+self.boxsize*1.5, 1000)
         y = np.linspace(self.k-self.boxsize*1.5, self.k+self.boxsize*1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
 
-        self.show_box(self.h,self.k,isPlot)
+        self.show_box(self.h,self.k)
 
         ##Equation of curve
         plt.contour(hypx, hypy,(self.func([hypx,hypy])), [0], colors='red')
 
-        if isPlot:
-            plt.grid(color='lightgray',linestyle='--')
-            plt.xlim(-30, 30)
-            plt.ylim(-30, 30)
-            plt.gca().set_aspect('equal', adjustable='box')
-            plt.show()
 
-    def show_box(self, h, k, isPlot):
+    def show_box(self, h, k):
         # PLOT CRYPTO RECTANGLE 
         plt.plot([h+(self.boxsize/2), h+(self.boxsize/2)], [k-(self.boxsize/2), k+(self.boxsize/2)], color = 'blue')
         plt.plot([h+(self.boxsize/2), h-(self.boxsize/2)], [k+(self.boxsize/2), k+(self.boxsize/2)], color = 'blue')
@@ -73,7 +67,8 @@ class Object:
             plt.xlim(-30, 30)
             plt.ylim(-30, 30)
             plt.gca().set_aspect('equal', adjustable='box')
-            t = np.linspace(0, self.boxsize, 500)
+            self.show_curve()
+            t = np.linspace(0, self.boxsize, 500)   
             plt.plot(intercept[0] + t*normDir[0], intercept[1] + t*normDir[1], 'orange')
             plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
             plt.show()
