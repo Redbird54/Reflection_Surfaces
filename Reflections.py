@@ -5,6 +5,25 @@ import matplotlib.pyplot as plt
 # pip3 install numdifftools
 import numdifftools as nd
 
+
+def find_closest_intersection(point1, point2, line_vector):
+    # find the unit vector of the line
+    line_magnitude = (line_vector[0]**2 + line_vector[1]**2)**0.5
+    line_unit_vector = (line_vector[0]/line_magnitude, line_vector[1]/line_magnitude)
+    
+    # find the vector from the point to the line
+    point_vector = (point2[0] - point1[0], point2[1] - point1[1])
+    
+    # project the point vector onto the line vector
+    point_vector_magnitude = (point_vector[0]**2 + point_vector[1]**2)**0.5
+    projection_magnitude = (point_vector[0]*line_unit_vector[0] + point_vector[1]*line_unit_vector[1]) / point_vector_magnitude
+    
+    # find the closest point of intersection
+    intersection_x = point1[0] + (projection_magnitude * line_unit_vector[0])
+    intersection_y = point1[1] + (projection_magnitude * line_unit_vector[1])
+    
+    return (intersection_x, intersection_y)
+
 class Object:
     def __init__(self):
         pass
@@ -51,12 +70,68 @@ class Object:
             normDir = -normDir
 
         ##Direction of normal
-        print("normDir: ", normDir)            	
+        print("normDir: ", normDir)             
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
         normNorm = normDir/np.linalg.norm(normDir)
         #Citation 1 
         out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
+
+        #import pdb; pdb.set_trace()
+        
+        line_start_point_A = np.array([self.h+(self.boxsize/2), self.k+(self.boxsize/2)]) # upper right corner
+        line_start_point_B = np.array([self.h-(self.boxsize/2), self.k-(self.boxsize/2)]) # lower left corner
+
+        line_direction_0 = np.array([-1, 0]) # top side
+        line_direction_1 = np.array([0, -1]) # right side
+        line_direction_2 = np.array([1, 0]) # bottom side
+        line_direction_3 = np.array([0, 1]) # left line
+
+        cross_prod_0 = np.cross(out, line_direction_0)
+        if cross_prod_0 != 0:
+            #calculate vector and line intersection point
+            intersection_point_0 = np.cross(intercept - line_start_point_A, line_direction_0) / cross_prod_0
+            intersection_point_0 = intersection_point_0 * out + intercept
+
+            import pdb; pdb.set_trace()
+            
+            if (intersection_point_0[0] <= self.h+(self.boxsize/2) and intersection_point_0[0] >= self.h-(self.boxsize/2) and
+                intersection_point_0[1] <= self.k+(self.boxsize/2) and intersection_point_0[1] >= self.k-(self.boxsize/2)):
+                print("Boundary box intersection point is", intersection_point_0)
+                plt.plot(intersection_point_0[0], intersection_point_0[1], marker='o', markerfacecolor='green')
+
+        cross_prod_1 = np.cross(out, line_direction_0)
+        if cross_prod_1 != 0:
+            #calculate vector and line intersection point
+            intersection_point_1 = np.cross(intercept - line_start_point_A, line_direction_1) / cross_prod_1
+            intersection_point_1 = intersection_point_1 * out + intercept
+
+            if (intersection_point_1[0] <= self.h+(self.boxsize/2) and intersection_point_1[0] >= self.h-(self.boxsize/2) and
+                intersection_point_1[1] <= self.k+(self.boxsize/2) and intersection_point_1[1] >= self.k-(self.boxsize/2)):
+                print("Boundary box intersection point is", intersection_point_1)
+                plt.plot(intersection_point_1[0], intersection_point_1[1], marker='o', markerfacecolor='green')
+
+        cross_prod_2 = np.cross(out, line_direction_2)
+        if cross_prod_2 != 0:
+            #calculate vector and line intersection point
+            intersection_point_2 = np.cross(intercept - line_start_point_B, line_direction_2) / cross_prod_2
+            intersection_point_2 = intersection_point_2 * out + intercept
+
+            if (intersection_point_2[0] <= self.h+(self.boxsize/2) and intersection_point_2[0] >= self.h-(self.boxsize/2) and
+                intersection_point_2[1] <= self.k+(self.boxsize/2) and intersection_point_2[1] >= self.k-(self.boxsize/2)):
+                print("Boundary box intersection point is", intersection_point_2)
+                plt.plot(intersection_point_2[0], intersection_point_2[1], marker='o', markerfacecolor='green')
+
+        cross_prod_3 = np.cross(out, line_direction_3)
+        if cross_prod_3 != 0:
+            #calculate vector and line intersection point
+            intersection_point_3 = np.cross(intercept - line_start_point_B, line_direction_3) / cross_prod_3
+            intersection_point_3 = intersection_point_3 * out + intercept
+
+            if (intersection_point_3[0] <= self.h+(self.boxsize/2) and intersection_point_3[0] >= self.h-(self.boxsize/2) and
+                intersection_point_3[1] <= self.k+(self.boxsize/2) and intersection_point_3[1] >= self.k-(self.boxsize/2)):
+                print("Boundary box intersection point is", intersection_point_3)
+                plt.plot(intersection_point_3[0], intersection_point_3[1], marker='o', markerfacecolor='green')   
 
         ##Direction of reflected line
         print("Output Direction: ", out)
