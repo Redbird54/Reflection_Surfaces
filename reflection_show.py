@@ -1,8 +1,8 @@
 from Reflections import *
 
-##Settings for how to show plot(s)
+##Hyperparameters for model
 indivPlots = False
-interactions = 6
+interactions = 20
 boxsize = 5
 
 
@@ -13,7 +13,7 @@ objs = []
 initialObjs.append(Ellipse(1,2,1,8,boxsize,math.pi/3))
 initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,5*math.pi/6))
 initialObjs.append(Linear(4,-9,4,3,boxsize))
-initialObjs.append(Parabola(1,17,13,boxsize,5*math.pi/3))
+initialObjs.append(Parabola(1,14,13,boxsize,5*math.pi/3))
 
 
 for obj in initialObjs:
@@ -53,6 +53,7 @@ for x in range(interactions):
 
 
 if not(indivPlots):
+    ##Show next ray
     t = np.linspace(0, 20, 500)
     plt.plot(nextPoint[0] + t*nextDir[0], nextPoint[1] + t*nextDir[1],'green')
 

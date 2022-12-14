@@ -10,8 +10,8 @@ class Object:
         pass
 
     def show_curve(self):
-        x = np.linspace(self.h-self.boxsize*1.5, self.h+self.boxsize*1.5, 1000)
-        y = np.linspace(self.k-self.boxsize*1.5, self.k+self.boxsize*1.5, 1000)
+        x = np.linspace(self.h - self.boxsize * 1.5, self.h + self.boxsize * 1.5, 1000)
+        y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
 
         self.show_box(self.h,self.k)
@@ -19,13 +19,18 @@ class Object:
         ##Equation of curve
         plt.contour(hypx, hypy,(self.func([hypx,hypy])), [0], colors='red')
 
-
     def show_box(self, h, k):
         # PLOT CRYPTO RECTANGLE 
-        plt.plot([h+(self.boxsize/2), h+(self.boxsize/2)], [k-(self.boxsize/2), k+(self.boxsize/2)], color = 'blue')
-        plt.plot([h+(self.boxsize/2), h-(self.boxsize/2)], [k+(self.boxsize/2), k+(self.boxsize/2)], color = 'blue')
-        plt.plot([h+(self.boxsize/2), h-(self.boxsize/2)], [k-(self.boxsize/2), k-(self.boxsize/2)], color = 'blue')
-        plt.plot([h-(self.boxsize/2), h-(self.boxsize/2)], [k-(self.boxsize/2), k+(self.boxsize/2)], color = 'blue')
+        plt.plot([h + (self.boxsize / 2), h + (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
+        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k + (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
+        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k - (self.boxsize / 2)], color = 'blue')
+        plt.plot([h - (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
+
+        # PLOT INVISIBLE RECTANGLE 
+        plt.plot([h + (self.boxsize * 1.5), h + (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
+        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k + (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
+        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k - (self.boxsize * 1.5)], color = 'brown')
+        plt.plot([h - (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
 
     def get_distance(self, initPoint, initDir):
         return -1
@@ -35,45 +40,59 @@ class Object:
 
     def reflect_procedure(self, dist, initPoint, initDir, isPlot):
         ##Variable for plotting & incident ray 
-        t2 = np.linspace(0, dist, 100)
-
-        print("Ray Direction: ", initDir[0], initDir[1])
+        t = np.linspace(0, dist, 100)
 
         intercept = np.array([initPoint[0] + dist*initDir[0], initPoint[1] + dist*initDir[1]])
-        print('Point of intersection: (', intercept[0], ', ', intercept[1], ')')
 
         ##Plot where the ray actually goes (initial point until intercept)
-        plt.plot(initPoint[0] + t2*initDir[0], initPoint[1] + t2*initDir[1],'black')
+        plt.plot(initPoint[0] + t*initDir[0], initPoint[1] + t*initDir[1],'black')
 
         ##Normal vector is gradient of function
         normDir = nd.Gradient(self.func)(intercept)
         if np.dot(initDir, normDir) < 0:
-            normDir = -normDir
-
-        ##Direction of normal
-        print("normDir: ", normDir)            	
+            normDir = -normDir         	
 
         ##Finding equation of reflected line by projecting onto norm and subtracting vectors
-        normNorm = normDir/np.linalg.norm(normDir)
+        normNorm = normDir / np.linalg.norm(normDir)
         #Citation 1 
         out = initDir - 2*(np.dot(initDir, normNorm)*normNorm)
 
-        ##Direction of reflected line
-        print("Output Direction: ", out)
+        ##Find output intercept with box
+        edge = self.boxsize / 2      
+        if (self.h + edge - intercept[0]) / out[0] >= 0:
+            if intercept[1] + (self.h + edge - intercept[0])/out[0] * out[1] >= self.k - edge and intercept[1] + (self.h + edge - intercept[0])/out[0] * out[1] <= self.k + edge:
+                outDist = (self.h + edge - intercept[0]) / out[0]
+            elif (self.k + edge - intercept[1])/out[1] >= 0:
+                outDist = (self.k + edge - intercept[1]) / out[1]
+            else:
+                outDist = (self.k - edge - intercept[1]) / out[1]
+        elif (self.h - edge - intercept[0]) / out[0] >= 0:
+            if intercept[1] + (self.h - edge - intercept[0])/out[0] * out[1] >= self.k - edge and intercept[1] + (self.h - edge - intercept[0])/out[0] * out[1] <= self.k + edge:
+                outDist = (self.h - edge - intercept[0]) / out[0]
+            elif (self.k + edge - intercept[1]) / out[1] >= 0:
+                outDist = (self.k + edge - intercept[1]) / out[1]
+            else:
+                outDist = (self.k - edge - intercept[1]) / out[1]
+        else:
+            outDist = 0
+        
+        outPoint = intercept + outDist*out
+        t2 = np.linspace(0, outDist, 100)
+        plt.plot(intercept[0] + t2*out[0], intercept[1] + t2*out[1],'black')
             
-        ##Print plot
+        ##Show plot
         if isPlot:
             plt.grid(color='lightgray',linestyle='--')
             plt.xlim(-30, 30)
             plt.ylim(-30, 30)
             plt.gca().set_aspect('equal', adjustable='box')
             self.show_curve()
-            t = np.linspace(0, self.boxsize, 500)   
-            plt.plot(intercept[0] + t*normDir[0], intercept[1] + t*normDir[1], 'orange')
-            plt.plot(intercept[0] + t*out[0], intercept[1] + t*out[1],'green')
+            t3 = np.linspace(0, self.boxsize, 500)   
+            plt.plot(intercept[0] + t3*normDir[0], intercept[1] + t3*normDir[1], 'orange')
+            plt.plot(outPoint[0] + t3*out[0], outPoint[1] + t3*out[1],'green')
             plt.show()
 
-        return intercept, out
+        return outPoint, out
 
 
 class Parabola(Object):
@@ -96,18 +115,16 @@ class Parabola(Object):
 
         ##Find where ray and curve intersect
         a_term = a * ((initDir[0]*cos + initDir[1]*sin)**2)
-        b_term = (2 * a * (initDir[0] * cos + initDir[1] * sin)
-            * ((initPoint[0] - h) * cos + (initPoint[1] - k) * sin) + (initDir[0] * sin) - (initDir[1] * cos))
-        c_term = (a * (((initPoint[0]-h)*cos + (initPoint[1]-k)*sin)**2)
-            + ((initPoint[0]-h)*sin) - ((initPoint[1]-k)*cos))
-        if b_term*b_term - 4 * a_term * c_term < 0:
-            print('No intercept')
+        b_term = ((2 * a * (initDir[0]*cos + initDir[1]*sin) * ((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)) 
+            + (initDir[0]*sin) - (initDir[1]*cos))
+        c_term = (a * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
+            + ((initPoint[0] - h)*sin) - ((initPoint[1] - k)*cos))
+        if b_term**2 - 4 * a_term * c_term < 0:
             return -1
-        distance_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-        distance_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+        distance_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+        distance_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
         
         if distance_add <= 1e-12 and distance_min <= 1e-12:
-            print('No intercept')
             return -1
         elif distance_add <= 1e-12:
             distance_true = distance_min
@@ -116,11 +133,11 @@ class Parabola(Object):
         else:
             distance_true = min(distance_add, distance_min)
             intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
-            if any(abs(intercept1-np.array([h,k])) > (self.boxsize*1.5)):
+            if any(abs(intercept1 - np.array([h,k])) > (self.boxsize * 1.5)):
                 distance_true = max(distance_add, distance_min)
 
         intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
-        if any(abs(intercept-np.array([h,k])) > (self.boxsize*1.5)):
+        if any(abs(intercept - np.array([h,k])) > (self.boxsize * 1.5)):
             return -1
 
         return distance_true
@@ -131,26 +148,26 @@ class Parabola(Object):
         k = self.k
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
-        x_tests = [boxcenter[0]-(self.boxsize/2), boxcenter[0]+(self.boxsize/2)]
-        y_tests = [boxcenter[1]-(self.boxsize/2), boxcenter[1]+(self.boxsize/2)]
+        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
+        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
 
         for x in x_tests:
-            a_term = a*(sin**2)
-            b_term = 2*a*sin*((x-h)*cos - k*sin) - cos
-            c_term = a*(((x-h)*cos - k*sin)**2) + (x-h)*sin + k*cos
-            if not(b_term*b_term - 4 * a_term * c_term < 0):
-                y_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-                y_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+            a_term = a * (sin**2)
+            b_term = 2 * a * sin * ((x - h)*cos - k*sin) - cos
+            c_term = a * (((x - h)*cos - k*sin)**2) + (x - h)*sin + k*cos
+            if not(b_term**2 - 4 * a_term * c_term < 0):
+                y_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+                y_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
                 if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
                     return True
             
         for y in y_tests:
-            a_term = a*(cos**2)
-            b_term = 2*a*cos*(-h*cos + (y-k)*sin) + sin
-            c_term = a*((-h*cos + (y-k)*sin)**2) - h*sin - (y-k)*cos 
-            if not(b_term*b_term - 4 * a_term * c_term < 0):
-                x_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-                x_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)    
+            a_term = a * (cos**2)
+            b_term = 2 * a * cos * (-h*cos + (y - k)*sin) + sin
+            c_term = a * ((-h*cos + (y - k)*sin)**2) - h*sin - (y - k)*cos 
+            if not(b_term**2 - 4 * a_term * c_term < 0):
+                x_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+                x_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)    
                 if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
                     return True
         return False
@@ -158,7 +175,7 @@ class Parabola(Object):
     def func(self, x):
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
-        return (self.a*(((x[0]-self.h)*cos + (x[1]-self.k)*sin)**2) + (x[0]-self.h)*sin - (x[1]-self.k)*cos)
+        return (self.a * (((x[0] - self.h)*cos + (x[1] - self.k)*sin)**2) + (x[0] - self.h)*sin - (x[1] - self.k)*cos)
 
     def reflect(self, dist, initPoint, initDir, isPlot):
         print('PARABOLA')
@@ -181,37 +198,35 @@ class Linear(Object):
         surfDir = self.surfDir
 
         ##Find where ray and curve intersect
-        if np.array_equal(surfDir/np.linalg.norm(surfDir),initDir/np.linalg.norm(initDir)):
-            print('No intercept')
+        if np.array_equal(surfDir / np.linalg.norm(surfDir),initDir / np.linalg.norm(initDir)):
             return -1
-        distance = (surfDir[0] * (initPoint[1] - surfPoint[1]) + surfDir[1] * (surfPoint[0] - initPoint[0]))/(surfDir[1]*initDir[0] - surfDir[0]*initDir[1])
+        distance = (surfDir[0] * (initPoint[1] - surfPoint[1]) + surfDir[1] * (surfPoint[0] - initPoint[0])) / (surfDir[1]*initDir[0] - surfDir[0]*initDir[1])
 
         if distance <= 1e-12:
-            print('No intercept')
             return -1
 
         intercept = np.array([initPoint[0] + distance*initDir[0], initPoint[1] + distance*initDir[1]])
-        if any(abs(intercept-surfPoint) > (self.boxsize*1.5)):
+        if any(abs(intercept - surfPoint) > (self.boxsize * 1.5)):
             return -1
-        # if np.linalg.norm(intercept-surfPoint) > (self.boxsize*1.5):
+        # if np.linalg.norm(intercept - surfPoint) > (self.boxsize * 1.5):
         #     return -1
 
         return distance
 
     def crosses_box_boundary(self, boxcenter):
-        x_tests = [boxcenter[0]-(self.boxsize/2), boxcenter[0]+(self.boxsize/2)]
-        y_tests = [boxcenter[1]-(self.boxsize/2), boxcenter[1]+(self.boxsize/2)]
+        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
+        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
 
         for x in x_tests:
             if not(self.surfDir[0] == 0):
-                y = self.surfPoint[1] + (x-self.surfPoint[0])*(self.surfDir[1]/self.surfDir[0])
+                y = self.surfPoint[1] + (x - self.surfPoint[0])*(self.surfDir[1]/self.surfDir[0])
             else:
                 y = self.surfPoint[1]    
             if (y >= y_tests[0] and y <= y_tests[1]):
                 return True
         for y in y_tests:
             if not(self.surfDir[1] == 0):
-                x = self.surfPoint[0] + (y-self.surfPoint[1])*(self.surfDir[0]/self.surfDir[1])
+                x = self.surfPoint[0] + (y - self.surfPoint[1])*(self.surfDir[0]/self.surfDir[1])
             else:
                 x = self.surfPoint[0]   
             if (x >= x_tests[0] and x <= x_tests[1]):
@@ -219,7 +234,7 @@ class Linear(Object):
         return False
 
     def func(self, x):
-        return (self.surfDir[0]*(self.surfPoint[1]-x[1]) + self.surfDir[1]*(x[0]-self.surfPoint[0]))
+        return (self.surfDir[0]*(self.surfPoint[1] - x[1]) + self.surfDir[1]*(x[0] - self.surfPoint[0]))
 
     def reflect(self, dist, initPoint, initDir, isPlot):
         print('LINEAR')
@@ -247,32 +262,22 @@ class Hyperbola(Object):
         cos = math.cos(self.theta)
 
         ##Find where ray and curve intersect
-        a_term = (((b**2)*(initDir[0]**2)*(cos**2)) - ((a**2)*(initDir[0]**2)*(sin**2)) 
-            + (2*(b**2)*initDir[0]*initDir[1]*cos*sin) + (2*(a**2)*initDir[0]*initDir[1]*cos*sin) 
-            + ((b**2)*(initDir[1]**2)*(sin**2)) - ((a**2)*(initDir[1]**2)*(cos**2)))
-        b_term = 2 * (((b**2)*initPoint[0]*initDir[0]*(cos**2)) - ((b**2)*h*initDir[0]*(cos**2)) 
-            + ((b**2)*initPoint[1]*initDir[1]*(sin**2)) - ((b**2)*k*initDir[1]*(sin**2)) 
-            + ((b**2)*initPoint[0]*initDir[1]*cos*sin) + ((b**2)*initPoint[1]*initDir[0]*cos*sin) 
-            - ((b**2)*k*initDir[0]*sin*cos) - ((b**2)*h*initDir[1]*sin*cos) 
-            - ((a**2)*initPoint[1]*initDir[1]*(cos**2)) + ((a**2)*k*initDir[1]*(cos**2))
-            - ((a**2)*initPoint[0]*initDir[0]*(sin**2))  + ((a**2)*h*initDir[0]*(sin**2)) 
-            + ((a**2)*initPoint[0]*initDir[1]*cos*sin) + ((a**2)*initPoint[1]*initDir[0]*cos*sin) 
-            - ((a**2)*k*initDir[0]*sin*cos) - ((a**2)*h*initDir[1]*sin*cos))
-        c_term = ((b**2)*((cos**2)*((initPoint[0]**2)-2*initPoint[0]*h + (h**2)) 
-            + (sin**2)*((initPoint[1]**2)-2*initPoint[1]*k + (k**2)) 
-            + 2*sin*cos*(initPoint[0]*initPoint[1] - initPoint[0]*k - initPoint[1]*h + h*k)) 
-            - (a**2)*((cos**2)*((initPoint[1]**2)-2*initPoint[1]*k + (k**2)) 
-            + (sin**2)*((initPoint[0]**2)-2*initPoint[0]*h + (h**2)) 
-            - 2*sin*cos*(initPoint[0]*initPoint[1] - initPoint[0]*k - initPoint[1]*h + h*k)) 
+        a_term = (b**2) * (((initDir[0]*cos) + (initDir[1]*sin))**2) - (a**2) * (((initDir[0]*sin) - (initDir[1]*cos))**2)
+        b_term = 2 * ((b**2) * (((initPoint[0] - h)*initDir[0]*(cos**2)) 
+            + ((initPoint[1] - k)*initDir[1]*(sin**2)) 
+            + ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)) 
+            - (a**2) * (((initPoint[1] - k)*initDir[1]*(cos**2))
+            + ((initPoint[0] - h)*initDir[0]*(sin**2)) 
+            - ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)))
+        c_term = ((b**2) * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
+            - (a**2) * (((initPoint[0] - h)*sin - initPoint[1] - k)*cos)**2)
             - (a**2)*(b**2))
-        if b_term*b_term - 4 * a_term * c_term < 0:
-            print('No intercept')
+        if b_term**2 - 4 * a_term * c_term < 0:
             return -1
-        distance_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-        distance_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+        distance_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+        distance_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
     
         if distance_add <= 1e-12 and distance_min <= 1e-12:
-            print('No intercept')
             return -1
         elif distance_add <= 1e-12:
             distance_true = distance_min
@@ -281,12 +286,12 @@ class Hyperbola(Object):
         else:
             distance_true = min(distance_add, distance_min)
             intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
-            if any(abs(intercept1-np.array([h,k])) > (self.boxsize*1.5)):
+            if any(abs(intercept1 - np.array([h,k])) > (self.boxsize * 1.5)):
                 distance_true = max(distance_add, distance_min)
 
         intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
 
-        if any(abs(intercept-np.array([h,k])) > (self.boxsize*1.5)):
+        if any(abs(intercept - np.array([h,k])) > (self.boxsize * 1.5)):
             return -1
 
         return distance_true
@@ -298,26 +303,26 @@ class Hyperbola(Object):
         k = self.k
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
-        x_tests = [boxcenter[0]-(self.boxsize/2), boxcenter[0]+(self.boxsize/2)]
-        y_tests = [boxcenter[1]-(self.boxsize/2), boxcenter[1]+(self.boxsize/2)]
+        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
+        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
 
         for x in x_tests:
-            a_term = ((b**2)*(sin**2)) - ((a**2)*(cos**2)) 
-            b_term = 2 * (((b**2) * sin * ((x-h)*cos - k*sin)) + ((a**2) * cos * ((x-h)*sin + k*cos)))
-            c_term = ((b**2) * (((x-h)*cos - k*sin)**2) - (a**2) * (((x-h)*sin + k*cos)**2) - (a**2)*(b**2))
-            if not(b_term*b_term - 4 * a_term * c_term < 0):
-                y_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-                y_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+            a_term = ((b**2) * (sin**2)) - ((a**2) * (cos**2)) 
+            b_term = 2 * (((b**2) * sin * ((x - h)*cos - k*sin)) + ((a**2) * cos * ((x - h)*sin + k*cos)))
+            c_term = ((b**2) * (((x - h)*cos - k*sin)**2) - (a**2) * (((x - h)*sin + k*cos)**2) - (a**2)*(b**2))
+            if not(b_term**2 - 4 * a_term * c_term < 0):
+                y_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+                y_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
                 if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
                     return True
             
         for y in y_tests:
-            a_term = ((b**2)*(cos**2)) + ((a**2)*(sin**2)) 
-            b_term = 2 * (((b**2) * cos * (-h*cos + (y-k)*sin)) - ((a**2) * sin * (h*sin + (y-k)*cos)))
-            c_term = ((b**2) * ((-h*cos + (y-k)*sin)**2) + (a**2) * ((h*sin + (y-k)*cos)**2) - (a**2)*(b**2)) 
-            if not(b_term*b_term - 4 * a_term * c_term < 0):
-                x_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-                x_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)    
+            a_term = ((b**2) * (cos**2)) + ((a**2) * (sin**2)) 
+            b_term = 2 * (((b**2) * cos * (-h*cos + (y - k)*sin)) - ((a**2) * sin * (h*sin + (y - k)*cos)))
+            c_term = ((b**2) * ((-h*cos + (y - k)*sin)**2) + (a**2) * ((h*sin + (y - k)*cos)**2) - (a**2)*(b**2)) 
+            if not(b_term**2 - 4 * a_term * c_term < 0):
+                x_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+                x_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)    
                 if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
                     return True
         return False
@@ -326,7 +331,7 @@ class Hyperbola(Object):
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
         return ((self.b**2) * ((((x[0] - self.h) * cos) + ((x[1] - self.k) * sin))**2) 
-            - (self.a**2)*((((x[0] - self.h) * sin) - ((x[1] - self.k) * cos))**2) 
+            - (self.a**2) * ((((x[0] - self.h) * sin) - ((x[1] - self.k) * cos))**2) 
             - (self.a**2) * (self.b**2))
 
     def reflect(self, dist, initPoint, initDir, isPlot):
@@ -355,32 +360,22 @@ class Ellipse(Object):
         cos = math.cos(self.theta)
 
         ##Find where ray and curve intersect
-        a_term = (((b**2)*(initDir[0]**2)*(cos**2)) + ((a**2)*(initDir[0]**2)*(sin**2)) 
-            + (2*(b**2)*initDir[0]*initDir[1]*cos*sin) - (2*(a**2)*initDir[0]*initDir[1]*cos*sin) 
-            + ((b**2)*(initDir[1]**2)*(sin**2)) + ((a**2)*(initDir[1]**2)*(cos**2)))
-        b_term = 2 * ((b**2) * ((initPoint[0]*initDir[0]*(cos**2)) - (h*initDir[0]*(cos**2)) 
-            + (initPoint[1]*initDir[1]*(sin**2)) - (k*initDir[1]*(sin**2)) 
-            + (initPoint[0]*initDir[1]*cos*sin) + (initPoint[1]*initDir[0]*cos*sin) 
-            - (k*initDir[0]*sin*cos) - (h*initDir[1]*sin*cos)) 
-            + (a**2) * ((initPoint[1]*initDir[1]*(cos**2)) - (k*initDir[1]*(cos**2))
-            + (initPoint[0]*initDir[0]*(sin**2)) - (h*initDir[0]*(sin**2)) 
-            - (initPoint[0]*initDir[1]*cos*sin) - (initPoint[1]*initDir[0]*cos*sin) 
-            + (k*initDir[0]*sin*cos) + (h*initDir[1]*sin*cos)))
-        c_term = ((b**2)*((cos**2)*((initPoint[0]**2)-2*initPoint[0]*h + (h**2)) 
-            + (sin**2)*((initPoint[1]**2)-2*initPoint[1]*k + (k**2)) 
-            + 2*sin*cos*(initPoint[0]*initPoint[1] - initPoint[0]*k - initPoint[1]*h + h*k)) 
-            + (a**2)*((cos**2)*((initPoint[1]**2)-2*initPoint[1]*k + (k**2)) 
-            + (sin**2)*((initPoint[0]**2)-2*initPoint[0]*h + (h**2)) 
-            - 2*sin*cos*(initPoint[0]*initPoint[1] - initPoint[0]*k - initPoint[1]*h + h*k)) 
+        a_term = (b**2) * (((initDir[0]*cos) + (initDir[1]*sin))**2) + (a**2) * (((initDir[0]*sin) - (initDir[1]*cos))**2)
+        b_term = 2 * ((b**2) * (((initPoint[0] - h)*initDir[0]*(cos**2)) 
+            + ((initPoint[1] - k)*initDir[1]*(sin**2)) 
+            + ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)) 
+            + (a**2) * (((initPoint[1] - k)*initDir[1]*(cos**2))
+            + ((initPoint[0] - h)*initDir[0]*(sin**2)) 
+            - ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)))
+        c_term = ((b**2) * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
+            + (a**2)*(((initPoint[0] - h)*sin - initPoint[1] - k)*cos)**2)
             - (a**2)*(b**2))        
-        if b_term*b_term - 4 * a_term * c_term < 0:
-            print('No intercept')
+        if b_term**2 - 4 * a_term * c_term < 0:
             return -1
-        distance_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-        distance_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+        distance_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+        distance_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
 
         if distance_add <= 1e-12 and distance_min <= 1e-12:
-            print('No intercept')
             return -1
         elif distance_add <= 1e-12:
             distance_true = distance_min
@@ -389,11 +384,11 @@ class Ellipse(Object):
         else:
             distance_true = min(distance_add, distance_min)
             intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
-            if any(abs(intercept1-np.array([h,k])) > (self.boxsize*1.5)):
+            if any(abs(intercept1 - np.array([h,k])) > (self.boxsize * 1.5)):
                 distance_true = max(distance_add, distance_min)
 
         intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
-        if any(abs(intercept-np.array([h,k])) > (self.boxsize*1.5)):
+        if any(abs(intercept - np.array([h,k])) > (self.boxsize * 1.5)):
             return -1
         
         return distance_true
@@ -405,26 +400,26 @@ class Ellipse(Object):
         k = self.k
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
-        x_tests = [boxcenter[0]-(self.boxsize/2), boxcenter[0]+(self.boxsize/2)]
-        y_tests = [boxcenter[1]-(self.boxsize/2), boxcenter[1]+(self.boxsize/2)]
+        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
+        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
 
         for x in x_tests:
-            a_term = ((b**2)*(sin**2)) + ((a**2)*(cos**2)) 
-            b_term = 2 * (((b**2) * sin * ((x-h)*cos - k*sin)) - ((a**2) * cos * ((x-h)*sin + k*cos)))
-            c_term = ((b**2) * (((x-h)*cos - k*sin)**2) + (a**2) * (((x-h)*sin + k*cos)**2) - (a**2)*(b**2))
-            if not(b_term*b_term - 4 * a_term * c_term < 0):
-                y_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-                y_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
+            a_term = ((b**2) * (sin**2)) + ((a**2)*(cos**2)) 
+            b_term = 2 * (((b**2) * sin * ((x - h)*cos - k*sin)) - ((a**2) * cos * ((x - h)*sin + k*cos)))
+            c_term = ((b**2) * (((x - h)*cos - k*sin)**2) + (a**2) * (((x - h)*sin + k*cos)**2) - (a**2)*(b**2))
+            if not(b_term**2 - 4 * a_term * c_term < 0):
+                y_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+                y_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
                 if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
                     return True
             
         for y in y_tests:
-            a_term = ((b**2)*(cos**2)) + ((a**2)*(sin**2)) 
-            b_term = 2 * (((b**2) * cos * (-h*cos + (y-k)*sin)) - ((a**2) * sin * (h*sin + (y-k)*cos)))
-            c_term = ((b**2) * ((-h*cos + (y-k)*sin)**2) + (a**2) * ((h*sin + (y-k)*cos)**2) - (a**2)*(b**2)) 
-            if not(b_term*b_term - 4 * a_term * c_term < 0):
-                x_add = (-b_term + np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)
-                x_min = (-b_term - np.sqrt(b_term*b_term - 4 * a_term * c_term)) / (2 * a_term)    
+            a_term = ((b**2) * (cos**2)) + ((a**2) * (sin**2)) 
+            b_term = 2 * (((b**2) * cos * (-h*cos + (y - k)*sin)) - ((a**2) * sin * (h*sin + (y - k)*cos)))
+            c_term = ((b**2) * ((-h*cos + (y - k)*sin)**2) + (a**2) * ((h*sin + (y - k)*cos)**2) - (a**2)*(b**2)) 
+            if not(b_term**2 - 4 * a_term * c_term < 0):
+                x_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+                x_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)    
                 if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
                     return True
         return False
@@ -432,8 +427,8 @@ class Ellipse(Object):
     def func(self, x):
         sin = math.sin(self.theta)
         cos = math.cos(self.theta)
-        return ((self.b**2) * (((x[0] - self.h) * cos + (x[1] - self.k) * sin)**2) 
-            + (self.a**2) * (((x[0] - self.h) * sin - (x[1] - self.k) * cos)**2) 
+        return ((self.b**2) * (((x[0] - self.h)*cos + (x[1] - self.k)*sin)**2) 
+            + (self.a**2) * (((x[0] - self.h)*sin - (x[1] - self.k)*cos)**2) 
             - ((self.a**2) * (self.b**2)))
 
     def reflect(self, dist, initPoint, initDir, isPlot):
