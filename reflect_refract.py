@@ -62,27 +62,40 @@ class Object:
         outRefr = (mu*initNorm) + (normNorm * np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2))))) - (mu * np.dot(normNorm, np.dot(normNorm, initNorm)))
 
         ##Find output intercept with box
-        edge = self.boxsize / 2      
-        if (self.h + edge - intercept[0]) / out[0] >= 0:
-            if intercept[1] + (self.h + edge - intercept[0])/out[0] * out[1] >= self.k - edge and intercept[1] + (self.h + edge - intercept[0])/out[0] * out[1] <= self.k + edge:
-                outDist = (self.h + edge - intercept[0]) / out[0]
-            elif (self.k + edge - intercept[1])/out[1] >= 0:
-                outDist = (self.k + edge - intercept[1]) / out[1]
-            else:
-                outDist = (self.k - edge - intercept[1]) / out[1]
-        elif (self.h - edge - intercept[0]) / out[0] >= 0:
-            if intercept[1] + (self.h - edge - intercept[0])/out[0] * out[1] >= self.k - edge and intercept[1] + (self.h - edge - intercept[0])/out[0] * out[1] <= self.k + edge:
-                outDist = (self.h - edge - intercept[0]) / out[0]
-            elif (self.k + edge - intercept[1]) / out[1] >= 0:
-                outDist = (self.k + edge - intercept[1]) / out[1]
-            else:
-                outDist = (self.k - edge - intercept[1]) / out[1]
-        else:
-            outDist = 0
+        # edge = self.boxsize / 2      
+        # if (self.h + edge - intercept[0]) / out[0] >= 0:
+        #     if intercept[1] + (self.h + edge - intercept[0])/out[0] * out[1] >= self.k - edge and intercept[1] + (self.h + edge - intercept[0])/out[0] * out[1] <= self.k + edge:
+        #         outDist = (self.h + edge - intercept[0]) / out[0]
+        #     elif (self.k + edge - intercept[1])/out[1] >= 0:
+        #         outDist = (self.k + edge - intercept[1]) / out[1]
+        #     else:
+        #         outDist = (self.k - edge - intercept[1]) / out[1]
+        # elif (self.h - edge - intercept[0]) / out[0] >= 0:
+        #     if intercept[1] + (self.h - edge - intercept[0])/out[0] * out[1] >= self.k - edge and intercept[1] + (self.h - edge - intercept[0])/out[0] * out[1] <= self.k + edge:
+        #         outDist = (self.h - edge - intercept[0]) / out[0]
+        #     elif (self.k + edge - intercept[1]) / out[1] >= 0:
+        #         outDist = (self.k + edge - intercept[1]) / out[1]
+        #     else:
+        #         outDist = (self.k - edge - intercept[1]) / out[1]
+        # else:
+        #     outDist = 0
         
-        outPoint = intercept + outDist*out
-        t2 = np.linspace(0, outDist, 100)
-        plt.plot(intercept[0] + t2*out[0], intercept[1] + t2*out[1],'black')
+
+        if self.objType == "reflection":
+            outPoint, outDist = self.findBoxIntercept(intercept, outRefl)
+            t2 = np.linspace(0, outDist, 100)
+            plt.plot(intercept[0] + t2*outRefl[0], intercept[1] + t2*outRefl[1],'black')
+        elif self.objType == "refraction":
+            outPoint, outDist = self.findBoxIntercept(intercept, outRefr)
+            t2 = np.linspace(0, outDist, 100)
+            plt.plot(intercept[0] + t2*outRefr[0], intercept[1] + t2*outRefr[1],'black')
+        else:
+            outPoint, outDist = self.findBoxIntercept(intercept, outRefl)
+            t2 = np.linspace(0, outDist, 100)
+            plt.plot(intercept[0] + t2*outRefl[0], intercept[1] + t2*outRefl[1],'black')
+            outPoint, outDist = self.findBoxIntercept(intercept, outRefr)
+            t2 = np.linspace(0, outDist, 100)
+            plt.plot(intercept[0] + t2*outRefr[0], intercept[1] + t2*outRefr[1],'black')
             
         ##Show plot
         if isPlot:
@@ -106,6 +119,26 @@ class Object:
             return outPoint, initDir, outRefr
         else:
             return outPoint, outRefl, outRefr
+
+    def findBoxIntercept(self, initPoint, dir):
+        edge = self.boxsize / 2      
+        if (self.h + edge - initPoint[0]) / dir[0] >= 0:
+            if initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
+                outDist = (self.h + edge - initPoint[0]) / dir[0]
+            elif (self.k + edge - initPoint[1])/dir[1] >= 0:
+                outDist = (self.k + edge - initPoint[1]) / dir[1]
+            else:
+                outDist = (self.k - edge - initPoint[1]) / dir[1]
+        elif (self.h - edge - initPoint[0]) / dir[0] >= 0:
+            if initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
+                outDist = (self.h - edge - initPoint[0]) / dir[0]
+            elif (self.k + edge - initPoint[1]) / dir[1] >= 0:
+                outDist = (self.k + edge - initPoint[1]) / dir[1]
+            else:
+                outDist = (self.k - edge - initPoint[1]) / dir[1]
+        else:
+            outDist = 0
+        return initPoint + outDist*dir, outDist
 
 
 class Parabola(Object):
@@ -298,7 +331,7 @@ class Hyperbola(Object):
             + ((initPoint[0] - h)*initDir[0]*(sin**2)) 
             - ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)))
         c_term = ((b**2) * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
-            - (a**2) * (((initPoint[0] - h)*sin - initPoint[1] - k)*cos)**2)
+            - (a**2) * (((initPoint[0] - h)*sin - (initPoint[1] - k)*cos)**2)
             - (a**2)*(b**2))
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
@@ -400,7 +433,7 @@ class Ellipse(Object):
             + ((initPoint[0] - h)*initDir[0]*(sin**2)) 
             - ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)))
         c_term = ((b**2) * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
-            + (a**2) * (((initPoint[0] - h)*sin - initPoint[1] - k)*cos)**2)
+            + (a**2) * (((initPoint[0] - h)*sin - (initPoint[1] - k)*cos)**2)
             - (a**2)*(b**2))      
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
@@ -467,3 +500,47 @@ class Ellipse(Object):
         print('ELLIPSE')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
 
+
+
+#Convex lens using two of same curved surfaces
+class Lens: 
+    def __init__(self,n1,n2,r1,r2,h,boxsize,initPoint,initDir,centerPoint, theta=0):
+        self.n1 = n1 # refractive index of medium 1
+        self.n2 = n2 # refractive index of medium 2
+        self.r1 = r1   # radius of first curvature
+        self.r2 = r2
+        self.h = h # thickness of lens
+        self.boxsize = boxsize
+        self.initPoint = initPoint
+        self.initDir = initDir
+        self.center = centerPoint # center of lens
+        self.theta = theta
+		
+    def getLens(self, isPlot): # type 2 convex surface
+        sin = math.sin(self.theta)
+        cos = math.cos(self.theta)
+        t = np.linspace(0, 10, 500)
+
+        objs = []
+        objs.append(Ellipse(self.r1, self.r1, self.center[0] + cos * (self.r1 - (self.h / 2)), self.center[1] + sin * (self.r1 - (self.h / 2)), 10 * self.boxsize, "refraction", notLens = False))
+        objs.append(Ellipse(self.r2, self.r2, self.center[0] + cos * ((self.h / 2) - self.r2), self.center[1] + sin * ((self.h / 2) - self.r2), 10 * self.boxsize, "refraction", notLens = False))
+        objs[0].show_curve()
+        objs[1].show_curve()
+        for test in range(len(self.initPoint)):
+            print("Initial Point: ", self.initPoint[test])
+            nextPoint, nextRefl, nextRefr = objs[0].output(objs[0].get_distance(self.initPoint[test],self.initDir),self.initPoint[test],self.initDir, self.n1, self.n2,False)
+            nextPoint, nextRefl, nextRefr = objs[1].output(objs[1].get_distance(nextPoint,nextRefr),nextPoint,nextRefr, self.n2, self.n1,False)
+            focalLength = 1 / ((self.n2 - 1) * ((1 / self.r1) + (1 / self.r2) - (((self.n2 - 1) * self.h) / (self.n2 * self.r1 * self.r2))))
+            dist = (3-nextPoint[1]) / nextRefr[1]
+            x = nextPoint[0] + dist*nextRefr[0]
+            print("Focal length: ", focalLength)
+            print("TEST: ", x)
+
+            if isPlot:
+                plt.plot(nextPoint[0] + t*nextRefr[0], nextPoint[1] + t*nextRefr[1],'green')
+        if isPlot:
+            plt.grid(color='lightgray',linestyle='--')
+            plt.xlim(-10, 10)
+            plt.ylim(-10, 10)
+            plt.gca().set_aspect('equal', adjustable='box')
+            plt.show()
