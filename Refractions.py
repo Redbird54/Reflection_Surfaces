@@ -166,6 +166,9 @@ class Lens:
             print("Output: ", nextPoint, "+ s*", nextDir)
             focalLength = 1/((this.n2 - 1)*((1/this.r1) + (1/this.r2) - (((this.n2-1)*this.h)/(this.n2*this.r1*this.r2))))
             print("Focal length: ", focalLength)
+            dist = (3-nextPoint[1]) / nextDir[1]
+            x = nextPoint[0] + dist*nextDir[0]
+            print("TEST: ", x)
 
             plt.plot(nextPoint[0] + t*nextDir[0], nextPoint[1] + t*nextDir[1],'green')
         plt.show()
@@ -178,8 +181,8 @@ n1 = 1.0003
 n2 = 1.52
 
 plt.grid(color='lightgray',linestyle='--')
-plt.xlim(6, 10)
-plt.ylim(0, 4)
+plt.xlim(-10, 10)
+plt.ylim(-10, 10)
 plt.gca().set_aspect('equal', adjustable='box')
 
 # glass2 = Medium_flat_surfaces(n1,n2, np.array([-1,-1]),np.array([1,2]), np.array([0,1]), np.array([1,1]))
@@ -197,6 +200,6 @@ plt.gca().set_aspect('equal', adjustable='box')
 # lens.block_type2()
 
 # lens = Lens(n1,n2,8,8,2,np.array([np.array([-2,1]),np.array([-2,1.5]),np.array([-2,2]),np.array([-2,2.5]),np.array([-2,3]),np.array([-2,3.5]),np.array([-2,4]),np.array([-2,4.5]),np.array([-2,5])]),np.array([1,0]),np.array([0,3]))
-lens = Lens(n1,n2,8,8,2,np.array([np.array([-2,1]),np.array([-2,1.5]),np.array([-2,2]),np.array([-2,2.5]),np.array([-2,3])]),np.array([1,0]),np.array([0,3]))
+lens = Lens(n1,n2,5,10,2,np.array([np.array([-2,1]),np.array([-2,1.5]),np.array([-2,2]),np.array([-2,2.5]),np.array([-2,3])]),np.array([1,0]),np.array([0,3]))
 lens.block_type2()
 

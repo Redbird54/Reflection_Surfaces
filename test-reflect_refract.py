@@ -3,7 +3,7 @@ import queue
 
 ##Hyperparameters for model
 indivPlots = False
-interactions = 20
+interactions = 8
 boxsize = 5
 
 ##Setting the medium 1 to air, medium 2 to glass
@@ -17,8 +17,10 @@ objs = []
 nextPoint, nextRefl = np.array([-10,-40]),np.array([1,4])
 initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
 initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
-initialObjs.append(Linear(4,-9,4,3,boxsize,"both"))
-initialObjs.append(Parabola(1,-15,13,boxsize,"refraction",5*math.pi/3))
+initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
+# initialObjs.append(Parabola(1,-15,13,boxsize,"refraction",5*math.pi/3))
+initialObjs.append(Lens(-15,13,8,10,5,boxsize,5*math.pi/3))
+# initialObjs.append(Linear_Lens(-15,13,5,boxsize,5*math.pi/3))
 
 for obj in initialObjs:
     if not(objs):
@@ -69,6 +71,7 @@ for x in range(interactions):
     if not(np.array_equal(nextRefr,currInfo[1])):
         if not(any(np.isnan(nextRefr))):
             outputs.put([nextPoint,nextRefr,currInfo[3],currInfo[2]])
+
 
 
 if not(indivPlots):
