@@ -590,24 +590,16 @@ class Lens:
     def output(self, dist, initPoint, initDir, n1, n2, isPlot):
         intercept = initPoint + dist*initDir
 
-        if self.theta > 0:
-            if intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]:
-                nextPoint, nextRefl, nextRefr = self.lens2.output(dist,initPoint,initDir, n1, n2,False)
+        if (self.theta > 0 and intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] > self.crossPoint[0]):
+            nextPoint, nextRefl, nextRefr = self.lens2.output(dist,initPoint,initDir, n1, n2,False)
+            if self.lens1.get_distance(nextPoint,nextRefr) != -1:
                 nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
-            elif intercept[1] < self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]:
-                nextPoint, nextRefl, nextRefr = self.lens1.output(dist,initPoint,initDir, n1, n2,False)
+        elif (self.theta > 0 and intercept[1] < self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] < self.crossPoint[0]):
+            nextPoint, nextRefl, nextRefr = self.lens1.output(dist,initPoint,initDir, n1, n2,False)
+            if self.lens2.get_distance(nextPoint,nextRefr) != -1:
                 nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
-            else:
-                nextPoint, nextRefl, nextRefr = initPoint, initDir, initDir
         else:
-            if intercept[0] > self.crossPoint[0]:
-                nextPoint, nextRefl, nextRefr = self.lens2.output(dist,initPoint,initDir, n1, n2,False)
-                nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
-            elif intercept[0] < self.corssPoint[0]:
-                nextPoint, nextRefl, nextRefr = self.lens1.output(dist,initPoint,initDir, n1, n2,False)
-                nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
-            else:
-                nextPoint, nextRefl, nextRefr = initPoint, initDir, initDir
+            nextPoint, nextRefl, nextRefr = initPoint, initDir, initDir
 
         focalLength = 1 / ((n2 - 1) * ((1 / self.r1) + (1 / self.r2) - (((n2 - 1) * self.height) / (n2 * self.r1 * self.r2))))
         print("Focal length: ", focalLength)
@@ -696,10 +688,12 @@ class Linear_Lens:
 
         if (self.theta > 0 and intercept[1] < self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] < self.h):
             nextPoint, nextRefl, nextRefr = self.lens2.output(dist,initPoint,initDir, n1, n2,False)
-            nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
+            if self.lens1.get_distance(nextPoint,nextRefr) != -1:
+                nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
         elif (self.theta > 0 and intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] > self.h):
             nextPoint, nextRefl, nextRefr = self.lens1.output(dist,initPoint,initDir, n1, n2,False)
-            nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
+            if self.lens2.get_distance(nextPoint,nextRefr) != -1:
+                nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint,nextRefr),nextPoint,nextRefr, n2, n1,False)
         else:
             nextPoint, nextRefl, nextRefr = initPoint, initDir, initDir
 
