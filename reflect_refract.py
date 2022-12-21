@@ -59,7 +59,10 @@ class Object:
         initNorm = initDir / np.linalg.norm(initDir)
         #Citation 1 
         outRefl = initDir - 2*(np.dot(initDir, normNorm) * normNorm)
-        outRefr = (mu*initNorm) + (normNorm * np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2))))) - (mu * np.dot(normNorm, np.dot(normNorm, initNorm)))
+        if np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2)))) >= 0:
+            outRefr = (mu*initNorm) + (normNorm * np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2))))) - (mu * np.dot(normNorm, np.dot(normNorm, initNorm)))
+        else:
+            outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
 
         ##Find output intercept with box
         if self.notLens:
@@ -488,15 +491,15 @@ class Ellipse(Object):
 
 
 
-#Convex lens using two curved surfaces
+#Convex/concave lens using two curved surfaces
 class Lens: 
     def __init__(self, h, k, r1, r2, height, boxsize, theta=0):
         self.h = h
         self.k = k
         self.r1 = r1   # radius of first curvature
         self.r2 = r2
-        if height <= 0:
-            raise Exception("Lens thickness must be positive")
+        if height == 0:
+            raise Exception("Lens thickness cannot be zero")
         else:
             self.height = height # thickness of lens
         self.boxsize = boxsize
@@ -511,26 +514,70 @@ class Lens:
         self.lens1 = Ellipse(r1, r1, self.center1[0], self.center1[1], 10*self.boxsize, "refraction", notLens = False)
         self.lens2 = Ellipse(r2, r2, self.center2[0], self.center2[1], 10*self.boxsize, "refraction", notLens = False)
         
-        d = np.linalg.norm(self.center1 - self.center2)
+        if (height > 0):
+            d = np.linalg.norm(self.center1 - self.center2)
+            self.theta1 = math.acos((self.r1**2 + d**2 - self.r2**2)/(2 * self.r1 * d))
+            self.theta2 = math.acos((self.r2**2 + d**2 - self.r1**2)/(2 * self.r2 * d))
 
-        self.theta1 = math.acos((self.r1**2 + d**2 - self.r2**2)/(2 * self.r1 * d))
-        self.theta2 = math.acos((self.r2**2 + d**2 - self.r1**2)/(2 * self.r2 * d))
+            self.slope = np.array([-math.sin(theta), math.cos(theta)])
+            self.point1 = np.array([self.center1[0]+self.r1*np.cos(self.theta + math.pi - self.theta1), self.center1[1]+self.r1*np.sin(self.theta + math.pi - self.theta1)])
+            self.point2 = self.point1
+        else:
+            check1 = False
+            check2 = False
+            
+            for test in [[0, -1], [1, -1], [0, 1], [1, 1]] :
+                out1 = self.findBoxPoint(r1, self.center1, np.array([h, k]), test[0], test[1])
+                if out1.any():
+                    self.point1 = out1
+                    check1 = True
+                out2 = self.findBoxPoint(r2, self.center2, np.array([h, k]), test[0], test[1])
+                if out2.any():
+                    self.point2 = out2
+                    check2 = True
+                if check1 and check2:
+                    break
 
-        self.slope = np.array([self.r1*(np.cos(self.theta + math.pi - self.theta1) - np.cos(self.theta + math.pi + self.theta1)), self.r1*(np.sin(self.theta + math.pi - self.theta1) - np.sin(self.theta + math.pi + self.theta1))])
-        self.crossPoint = np.array([self.center1[0]+self.r1*np.cos(self.theta + math.pi - self.theta1), self.center1[1]+self.r1*np.sin(self.theta + math.pi - self.theta1)])
+            self.slope = np.array([-math.sin(theta), math.cos(theta)])
+
+    def findBoxPoint(self, r, center, middle, var, side):
+        ##Var is 0  when testing for y, 1 when testing for x
+        ##Side is -1 when testing left of bottom of box, 1 for top or right
+        b = self.boxsize*1.5
+        if np.sqrt(r**2 - (middle[var]+side*b-center[var])**2):
+            test = center[(var+1)%2] + np.sqrt(r**2 - (middle[var]+side*b-center[var])**2)
+            test2 = center[(var+1)%2] - np.sqrt(r**2 - (middle[var]+side*b-center[var])**2)
+            if (middle[(var+1)%2]-b) <= test <= (middle[(var+1)%2]+b):
+                if var == 0:
+                    return np.array([middle[0]+side*b, test])
+                elif var == 1:
+                    return np.array([test, middle[1]+side*b])
+            elif (middle[(var+1)%2]-b) <= test2 <= (middle[(var+1)%2]+b):
+                if var == 0:
+                    return np.array([middle[0]+side*b, test2])
+                elif var == 1:
+                    return np.array([test2, middle[1]+side*b])
+        return np.array([])
 
     def get_center(self):
         return self.h, self.k
 
     def show_curve(self):
         self.show_box(self.h, self.k)
+        if self.height > 0:
+            t = np.linspace(self.theta + math.pi - self.theta1, self.theta + math.pi + self.theta1, 100)
+            t2 = np.linspace(self.theta + self.theta2, self.theta - self.theta2, 100)
+            
+            ##Equation of curves
+            plt.plot(self.center1[0]+self.r1*np.cos(t), self.center1[1]+self.r1*np.sin(t), color='red')
+            plt.plot(self.center2[0]+self.r2*np.cos(t2), self.center2[1]+self.r2*np.sin(t2), color='red')
+        else:
+            x = np.linspace(self.h - self.boxsize * 1.5, self.h + self.boxsize * 1.5, 1000)
+            y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
+            hypx, hypy = np.meshgrid(x, y)
 
-        t = np.linspace(self.theta + math.pi - self.theta1, self.theta + math.pi + self.theta1, 100)
-        t2 = np.linspace(self.theta + self.theta2, self.theta - self.theta2, 100)
-        
-        ##Equation of curve
-        plt.plot(self.center1[0]+self.r1*np.cos(t), self.center1[1]+self.r1*np.sin(t), color='red')
-        plt.plot(self.center2[0]+self.r2*np.cos(t2), self.center2[1]+self.r2*np.sin(t2), color='red')
+            plt.contour(hypx, hypy, (self.func(self.center1, [hypx, hypy], self.r1)), [0], colors='red')
+            plt.contour(hypx, hypy, (self.func(self.center2, [hypx, hypy], self.r2)), [0], colors='red')
 
     def show_box(self, h, k):
         # PLOT CRYPTO RECTANGLE 
@@ -552,30 +599,38 @@ class Lens:
         if dist2 != -1:
             intercept2 = initPoint + dist2*initDir
 
-        #Testing if intercepts are valid by testing if they are above or below center of lens
+        
+        #Testing if intercepts are valid by testing if they are above or below line connecting where lenses intercept
+        #If not finding 2nd intercept and testing it as well. Distance not -1 only if valid intercept found 
         if self.theta > 0:
-            if dist1 != -1 and intercept1[1] > self.k + (intercept1[0]-self.h) * self.slope[1]/self.slope[0]:
-                nextDist = self.lens1.get_distance(intercept1, initDir)
-                if nextDist == -1:
-                    dist1 = -1
-                else:
-                    dist1 = dist1 + nextDist
-            if dist2 != -1 and intercept2[1] < self.k + (intercept2[0]-self.h) * self.slope[1]/self.slope[0]:
-                nextDist = self.lens2.get_distance(intercept2, initDir)
-                if nextDist == -1:
-                    dist2 = -1
-                else:
-                    dist2 = dist2 + nextDist
+            if dist1 != -1:
+                if intercept1[1] > self.point1[1] + (intercept1[0]-self.point1[0]) * self.slope[1]/self.slope[0]:
+                    nextDist = self.lens1.get_distance(intercept1, initDir)
+                    intercept1 = intercept1 + nextDist*initDir
+                    if (nextDist != -1 and intercept1[1] > self.point1[1] + (intercept1[0]-self.point1[0]) * self.slope[1]/self.slope[0]) or nextDist == -1:
+                        dist1 = -1
+                    else:
+                        dist1 = dist1 + nextDist
+            if dist2 != -1:
+                if intercept2[1] < self.point2[1] + (intercept2[0]-self.point2[0]) * self.slope[1]/self.slope[0]:
+                    nextDist = self.lens2.get_distance(intercept2, initDir)
+                    intercept2 = intercept2 + nextDist*initDir
+                    if (nextDist != -1 and intercept2[1] < self.point2[1] + (intercept2[0]-self.point2[0]) * self.slope[1]/self.slope[0]) or nextDist == -1:
+                        dist2 = -1
+                    else:
+                        dist2 = dist2 + nextDist
         else: #Testing for left or right side when theta = 0
-            if dist1 != -1 and intercept1[0] > self.h:
+            if dist1 != -1 and intercept1[0] > self.point1[0]:
                 nextDist = self.lens1.get_distance(intercept1, initDir)
-                if nextDist == -1:
+                intercept1 = intercept1 + nextDist*initDir
+                if (nextDist != -1 and intercept1[0] > self.point1[0]) or nextDist == -1:
                     dist1 = -1
                 else:
                     dist1 = dist1 + nextDist
-            if dist2 != -1 and intercept2[0] < self.h:
+            if dist2 != -1 and intercept2[0] < self.point2[0]:
                 nextDist = self.lens2.get_distance(intercept2, initDir)
-                if nextDist == -1:
+                intercept2 = intercept2 + nextDist*initDir
+                if (nextDist != -1 and intercept2[0] < self.point2[0]) or nextDist == -1:
                     dist2 = -1
                 else:
                     dist2 = dist2 + nextDist
@@ -587,23 +642,42 @@ class Lens:
         else:
             return min(dist1, dist2)
 
+    def func(self, center, x, r):
+        sin = np.sin(self.theta)
+        cos = np.cos(self.theta)
+        return (((x[0] - center[0])*cos + (x[1] - center[1])*sin)**2 
+            + ((x[0] - center[0])*sin - (x[1] - center[1])*cos)**2 
+            - (r**2))
+
     def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+        print('CIRCULAR LENS')
+
         intercept = initPoint + dist*initDir
 
-        if (self.theta > 0 and intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] > self.crossPoint[0]):
+        if -1e-12 <= (intercept[0] - self.center2[0])**2 + (intercept[1] - self.center2[1])**2 - (self.r2)**2 <= 1e-12:
             nextPoint, nextRefl, nextRefr = self.lens2.output(dist, initPoint, initDir, n1, n2, False)
-            if self.lens1.get_distance(nextPoint, nextRefr) != -1:
-                nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+            distNew = self.lens1.get_distance(nextPoint, nextRefr)
+            interceptNew = nextPoint + distNew*nextRefr
+            if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5):
+                if distNew != -1:
+                    nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+                else:
+                    nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
             else:
-                nextPoint, nextRefl, nextRefr = self.lens2.output(dist, initPoint, initDir, n2, n1, False)
-        elif (self.theta > 0 and intercept[1] < self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] < self.crossPoint[0]):
+                nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
+        elif -1e-12 <= (intercept[0] - self.center1[0])**2 + (intercept[1] - self.center1[1])**2 - (self.r1)**2 <= 1e-12:
             nextPoint, nextRefl, nextRefr = self.lens1.output(dist, initPoint, initDir, n1, n2, False)
-            if self.lens2.get_distance(nextPoint, nextRefr) != -1:
-                nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+            distNew = self.lens2.get_distance(nextPoint, nextRefr)
+            interceptNew = nextPoint + distNew*nextRefr
+            if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5):
+                if distNew != -1:
+                    nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+                else:
+                    nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
             else:
-                nextPoint, nextRefl, nextRefr = self.lens1.output(dist, initPoint, initDir, n2, n1, False)
+                nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         else:
-            nextPoint, nextRefl, nextRefr = initPoint, initDir, initDir
+            nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
 
         focalLength = 1 / ((n2 - 1) * ((1 / self.r1) + (1 / self.r2) - (((n2 - 1) * self.height) / (n2 * self.r1 * self.r2))))
         print("Focal length: ", focalLength)
@@ -611,8 +685,9 @@ class Lens:
         if isPlot:
             t = np.linspace(0, 10, 500)
             plt.plot(nextPoint[0] + t*nextRefr[0], nextPoint[1] + t*nextRefr[1], 'green')
-            t3 = np.linspace(-3, 3, 500)
-            plt.plot(self.crossPoint[0] + t3*self.slope[0], self.crossPoint[1] + t3*self.slope[1], 'orange')
+            t3 = np.linspace(-15, 6, 500)
+            plt.plot(self.point1[0] + t3*self.slope[0], self.point1[1] + t3*self.slope[1], 'orange')
+            plt.plot(self.point2[0] + t3*self.slope[0], self.point2[1] + t3*self.slope[1], 'orange')
             self.show_curve()
             plt.grid(color='lightgray', linestyle='--')
             plt.xlim(self.h-20, self.h+20)
@@ -640,9 +715,9 @@ class Linear_Lens:
             self.theta = theta
         self.center1 = np.array([h + np.cos(self.theta) * (height / 2), k + np.sin(self.theta) * (height / 2)])
         self.center2 = np.array([h - np.cos(self.theta) * (height / 2), k - np.sin(self.theta) * (height / 2)])
-        self.slope = np.array([h*math.cos(theta) - (k+1)*math.sin(theta) - h, h*math.sin(theta) + (k+1)*math.cos(theta) - k])
-        self.lens1 = Linear(self.center1[0], self.center1[1], self.slope[0], self.slope[1], 10*self.boxsize, "refraction", notLens = False)
-        self.lens2 = Linear(self.center2[0], self.center2[1], self.slope[0], self.slope[1], 10*self.boxsize, "refraction", notLens = False)
+        self.slope = np.array([-math.sin(theta), math.cos(theta)])
+        self.lens1 = Linear(self.center1[0], self.center1[1], self.slope[0], self.slope[1], self.boxsize, "refraction", notLens = False)
+        self.lens2 = Linear(self.center2[0], self.center2[1], self.slope[0], self.slope[1], self.boxsize, "refraction", notLens = False)
     
     def get_center(self):
         return self.h, self.k
@@ -675,10 +750,8 @@ class Linear_Lens:
         dist2 = self.lens2.get_distance(initPoint, initDir)
 
         if dist1 != -1 and dist2 == -1:
-            #CHECK FOR TOP/BOTTOM OF BOX
             return dist1
         elif dist1 == -1 and dist2 != -1:
-            #CHECK FOR TOP/BOTTOM OF BOX
             return dist2
         else:
             return min(dist1, dist2)
@@ -687,6 +760,8 @@ class Linear_Lens:
         return (self.slope[0] * (center[1] - x[1]) + self.slope[1] * (x[0] - center[0]))
 
     def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+        print('LINEAR LENS')
+
         intercept = initPoint + dist*initDir
 
         #Testiing which order to refract through lenses, depending on location of intercept
@@ -695,15 +770,15 @@ class Linear_Lens:
             if self.lens1.get_distance(nextPoint, nextRefr) != -1:
                 nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
             else:
-                nextPoint, nextRefl, nextRefr = self.lens2.output(dist, initPoint, initDir, n2, n1, False) #Redo lens as though it is leaving glass, makes reversing process easier
+                nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         elif (self.theta > 0 and intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] > self.h):
             nextPoint, nextRefl, nextRefr = self.lens1.output(dist, initPoint, initDir, n1, n2, False)
             if self.lens2.get_distance(nextPoint, nextRefr) != -1:
                 nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
             else:
-                nextPoint, nextRefl, nextRefr = self.lens1.output(dist, initPoint, initDir, n2, n1, False)
+                nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         else:
-            nextPoint, nextRefl, nextRefr = initPoint, initDir, initDir
+            nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
 
         if isPlot:
             t = np.linspace(0, 10, 500)

@@ -19,8 +19,8 @@ initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
 initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
 initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
 # initialObjs.append(Parabola(1,-15,13,boxsize,"refraction",5*math.pi/3))
-initialObjs.append(Lens(-15,13,8,10,5,boxsize,5*math.pi/3))
-# initialObjs.append(Linear_Lens(-15,13,5,boxsize,5*math.pi/3))
+initialObjs.append(Lens(-15,13,7,10,5,boxsize,9*math.pi/20))
+# initialObjs.append(Linear_Lens(-15,13,4,boxsize,18*math.pi/20))
 
 for obj in initialObjs:
     if not(objs):
