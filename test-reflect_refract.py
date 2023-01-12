@@ -1,4 +1,5 @@
 from reflect_refract import *
+from general_curves import *
 import queue
 
 ##Hyperparameters for model
@@ -15,6 +16,8 @@ initialObjs = []
 objs = []
 
 nextPoint, nextRefl = np.array([-10,-40]),np.array([1,4])
+# initialObjs.append(Polynomial3(5, 2, 3, -1, 7, 2, 0, -4, 1, -2, 0, 0,boxsize,"reflection"))
+# initialObjs.append(Polynomial2(5, 3, 7, 5, -1, 0, 0, 0,boxsize,"reflection"))
 initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
 initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
 initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
