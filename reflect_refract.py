@@ -34,8 +34,43 @@ class Object:
     def get_distance(self, initPoint, initDir):
         return -1
 
+    def get_box_distance(self, initPoint, dir):
+        edge = self.boxsize / 2
+        if not(self.h + edge > initPoint[0] and self.h - edge < initPoint[0] and
+            self.k + edge > initPoint[1] and self.k - edge < initPoint[1]): #Intercept not in box
+            return -1
+        
+        if (self.h + edge - initPoint[0]) / dir[0] >= 0: #Crosses right side of box
+            if initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
+                outDist = (self.h + edge - initPoint[0]) / dir[0]
+            elif (self.k + edge - initPoint[1])/dir[1] >= 0: #Crosses top of box before right side
+                outDist = (self.k + edge - initPoint[1]) / dir[1]
+            else: #Crosses bottom of box before right side
+                outDist = (self.k - edge - initPoint[1]) / dir[1]
+        elif (self.h - edge - initPoint[0]) / dir[0] >= 0: #Crosses left side of box
+            if initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
+                outDist = (self.h - edge - initPoint[0]) / dir[0]
+            elif (self.k + edge - initPoint[1]) / dir[1] >= 0:
+                outDist = (self.k + edge - initPoint[1]) / dir[1]
+            else:
+                outDist = (self.k - edge - initPoint[1]) / dir[1]
+        else:
+            outDist = -1
+        return outDist
+
+    def box_edge(self, initPoint, dir):
+        nextDist = self.get_distance(initPoint, dir)
+        boxDist =  self.get_box_distance(initPoint, dir)
+        if boxDist != -1 and (nextDist == -1 or boxDist <= nexDist):
+            outPoint, outDist = initPoint + boxDist*dir, boxDist
+        else:
+            outPoint, outDist = initPoint, 0
+        t = np.linspace(0, outDist, 100)
+        plt.plot(initPoint[0] + t*dir[0], initPoint[1] + t*dir[1], 'black')
+        return outPoint
+
     def output(self, dist, initPoint, initDir, n1, n2, isPlot):
-        return initPoint, initDir, initDir
+        return [[initPoint, initDir, initDir]]
 
     def output_procedure(self, dist, initPoint, initDir, n1, n2, isPlot):
         mu = n1 / n2
@@ -67,22 +102,15 @@ class Object:
         ##Find output intercept with box
         if self.notLens:
             if self.objType == "reflection":
-                outPoint, outDist = self.findBoxIntercept(intercept, outRefl)
-                t2 = np.linspace(0, outDist, 100)
-                plt.plot(intercept[0] + t2*outRefl[0], intercept[1] + t2*outRefl[1], 'black')
+                outPoint = self.box_edge(intercept, outRefl)
             elif self.objType == "refraction":
-                outPoint, outDist = self.findBoxIntercept(intercept, outRefr)
-                t2 = np.linspace(0, outDist, 100)
-                plt.plot(intercept[0] + t2*outRefr[0], intercept[1] + t2*outRefr[1], 'black')
+                outPoint2 = self.box_edge(intercept, outRefr)
             else:
-                outPoint, outDist = self.findBoxIntercept(intercept, outRefl)
-                t2 = np.linspace(0, outDist, 100)
-                plt.plot(intercept[0] + t2*outRefl[0], intercept[1] + t2*outRefl[1], 'black')
-                outPoint, outDist = self.findBoxIntercept(intercept, outRefr)
-                t2 = np.linspace(0, outDist, 100)
-                plt.plot(intercept[0] + t2*outRefr[0], intercept[1] + t2*outRefr[1], 'black')
+                outPoint = self.box_edge(intercept, outRefl)
+                outPoint2 = self.box_edge(intercept, outRefr)
         else:
             outPoint = intercept
+            outPoint2 = intercept
             
         ##Show plot
         if isPlot:
@@ -97,53 +125,32 @@ class Object:
                 if self.objType == "reflection" or self.objType == "both":
                     plt.plot(outPoint[0] + t3*outRefl[0], outPoint[1] + t3*outRefl[1], 'green')
                 elif self.objType == "refraction" or self.objType == "both":
-                    plt.plot(outPoint[0] + t3*outRefr[0], outPoint[1] + t3*outRefr[1], 'green')
+                    plt.plot(outPoint2[0] + t3*outRefr[0], outPoint2[1] + t3*outRefr[1], 'green')
             plt.show()
 
         if self.objType == "reflection":
-            return outPoint, outRefl, initDir
+            return [[outPoint, outRefl, initDir]]
         elif self.objType == "refraction":
-            return outPoint, initDir, outRefr
+            return [[outPoint2, initDir, outRefr]]
         else:
-            return outPoint, outRefl, outRefr
+            return [[outPoint, outRefl, initDir],[outPoint2, initDir, outRefr]]
 
-    def findBoxIntercept(self, initPoint, dir):
-        edge = self.boxsize / 2
-        if not(self.h + edge > initPoint[0] and self.h - edge < initPoint[0] and
-            self.k + edge > initPoint[1] and self.k - edge < initPoint[1]): #Intercept not in box
-            return initPoint, 0
-        
-        if (self.h + edge - initPoint[0]) / dir[0] >= 0: #Crosses right side of box
-            if initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
-                outDist = (self.h + edge - initPoint[0]) / dir[0]
-            elif (self.k + edge - initPoint[1])/dir[1] >= 0: #Crosses top of box before right side
-                outDist = (self.k + edge - initPoint[1]) / dir[1]
-            else: #Crosses bottom of box before right side
-                outDist = (self.k - edge - initPoint[1]) / dir[1]
-        elif (self.h - edge - initPoint[0]) / dir[0] >= 0: #Crosses left side of box
-            if initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
-                outDist = (self.h - edge - initPoint[0]) / dir[0]
-            elif (self.k + edge - initPoint[1]) / dir[1] >= 0:
-                outDist = (self.k + edge - initPoint[1]) / dir[1]
-            else:
-                outDist = (self.k - edge - initPoint[1]) / dir[1]
-        else:
-            outDist = 0
-        return initPoint + outDist*dir, outDist
 
 
 class Parabola(Object):
-    def __init__(self, a, h, k, boxsize, outputType, theta=0, notLens="True"):
+    def __init__(self, a, h, k, boxsize, outputType, theta=0):
         if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
             self.objType = outputType
         else:
-            raise Exception("Type must be \"reflection\", \"refraction\", or \"both\"")
+            raise Exception("Type must be \"reflection\", \"refraction\"") #, or \"both\"")
+        if a == 0:
+            raise Exception("a cannot be 0")
         self.a = a
         self.h = h
         self.k = k
         self.boxsize = boxsize
         self.theta = theta
-        self.notLens = notLens
+        self.notLens = True
 
     def get_center(self):
         return self.h, self.k
@@ -163,56 +170,20 @@ class Parabola(Object):
             + ((initPoint[0] - h)*sin) - ((initPoint[1] - k)*cos))
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
-        distance_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-        distance_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-        
-        if distance_add <= 1e-12 and distance_min <= 1e-12:
-            return -1
-        elif distance_add <= 1e-12:
-            distance_true = distance_min
-        elif distance_min <= 1e-12:
-            distance_true = distance_add
+        if a_term == 0:
+            return (-c_term)/b_term
+        dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
+
+        dists = dists[dists > 1e-12]
+        goodDists = np.array([])
+        for myDist in dists:
+            intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
+            if not(any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5))):
+                goodDists = np.append(goodDists, myDist)
+        if len(goodDists) > 0:
+            return min(goodDists)
         else:
-            distance_true = min(distance_add, distance_min)
-            intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
-            if any(abs(intercept1 - np.array([h, k])) > (self.boxsize * 1.5)):
-                distance_true = max(distance_add, distance_min)
-
-        intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
-        if any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5)):
             return -1
-
-        return distance_true
-
-    def crosses_box_boundary(self, boxcenter):
-        a = self.a
-        h = self.h
-        k = self.k
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
-        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
-
-        for x in x_tests:
-            a_term = a * (sin**2)
-            b_term = 2 * a * sin * ((x - h)*cos - k*sin) - cos
-            c_term = a * (((x - h)*cos - k*sin)**2) + (x - h)*sin + k*cos
-            if not(b_term**2 - 4 * a_term * c_term < 0):
-                y_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                y_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
-                    return True
-            
-        for y in y_tests:
-            a_term = a * (cos**2)
-            b_term = 2 * a * cos * (-h*cos + (y - k)*sin) + sin
-            c_term = a * ((-h*cos + (y - k)*sin)**2) - h*sin - (y - k)*cos 
-            if not(b_term**2 - 4 * a_term * c_term < 0):
-                x_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                x_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)    
-                if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
-                    return True
-        return False
 
     def func(self, x):
         sin = np.sin(self.theta)
@@ -225,11 +196,13 @@ class Parabola(Object):
 
 
 class Linear(Object):
-    def __init__(self, h, k, dx, dy, boxsize, outputType, notLens="True"):
+    def __init__(self, h, k, dx, dy, boxsize, outputType, notLens=True):
         if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
             self.objType = outputType
         else:
-            raise Exception("Type must be \"reflection\", \"refraction\", or \"both\"")
+            raise Exception("Type must be \"reflection\", \"refraction\"") #, or \"both\"")
+        if dx == 0 and dy == 0:
+            raise Exception("dx and dy cannot both be 0")
         self.h = h
         self.k = k
         self.surfPoint = np.array([h, k])
@@ -258,26 +231,6 @@ class Linear(Object):
 
         return distance
 
-    def crosses_box_boundary(self, boxcenter):
-        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
-        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
-
-        for x in x_tests:
-            if not(self.surfDir[0] == 0):
-                y = self.surfPoint[1] + (x - self.surfPoint[0])*(self.surfDir[1] / self.surfDir[0])
-            else:
-                y = self.surfPoint[1]    
-            if (y >= y_tests[0] and y <= y_tests[1]):
-                return True
-        for y in y_tests:
-            if not(self.surfDir[1] == 0):
-                x = self.surfPoint[0] + (y - self.surfPoint[1])*(self.surfDir[0] / self.surfDir[1])
-            else:
-                x = self.surfPoint[0]   
-            if (x >= x_tests[0] and x <= x_tests[1]):
-                return True
-        return False
-
     def func(self, x):
         return (self.surfDir[0] * (self.surfPoint[1] - x[1]) + self.surfDir[1] * (x[0] - self.surfPoint[0]))
 
@@ -287,18 +240,20 @@ class Linear(Object):
 
 
 class Hyperbola(Object):
-    def __init__(self, a, b, h, k, boxsize, outputType, theta=0, notLens="True"):
+    def __init__(self, a, b, h, k, boxsize, outputType, theta=0):
         if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
             self.objType = outputType
         else:
-            raise Exception("Type must be \"reflection\", \"refraction\", or \"both\"")
+            raise Exception("Type must be \"reflection\", \"refraction\"") #, or \"both\"")
+        if a == 0 and b == 0:
+            raise Exception("a and b cannot both be 0")
         self.a = a
         self.b = b
         self.h = h
         self.k = k
         self.boxsize = boxsize
         self.theta = theta
-        self.notLens = notLens
+        self.notLens = True
 
     def get_center(self):
         return self.h, self.k
@@ -324,63 +279,24 @@ class Hyperbola(Object):
             - (a**2)*(b**2))
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
-        distance_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-        distance_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-    
-        if distance_add <= 1e-12 and distance_min <= 1e-12:
-            return -1
-        elif distance_add <= 1e-12:
-            distance_true = distance_min
-        elif distance_min <= 1e-12:
-            distance_true = distance_add
+        dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
+
+        dists = dists[dists > 1e-12]
+        goodDists = np.array([])
+        for myDist in dists:
+            intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
+            if not(any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5))):
+                goodDists = np.append(goodDists, myDist)
+        if len(goodDists) > 0:
+            return min(goodDists)
         else:
-            distance_true = min(distance_add, distance_min)
-            intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
-            if any(abs(intercept1 - np.array([h, k])) > (self.boxsize * 1.5)):
-                distance_true = max(distance_add, distance_min)
-
-        intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
-        if any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5)):
             return -1
-
-        return distance_true
-
-    def crosses_box_boundary(self, boxcenter):
-        a = self.a
-        b = self.b
-        h = self.h
-        k = self.k
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
-        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
-
-        for x in x_tests:
-            a_term = ((b**2) * (sin**2)) - ((a**2) * (cos**2)) 
-            b_term = 2 * (((b**2) * sin * ((x - h)*cos - k*sin)) + ((a**2) * cos * ((x - h)*sin + k*cos)))
-            c_term = ((b**2) * (((x - h)*cos - k*sin)**2) - (a**2) * (((x - h)*sin + k*cos)**2) - (a**2)*(b**2))
-            if not(b_term**2 - 4 * a_term * c_term < 0):
-                y_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                y_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
-                    return True
-            
-        for y in y_tests:
-            a_term = ((b**2) * (cos**2)) + ((a**2) * (sin**2)) 
-            b_term = 2 * (((b**2) * cos * (-h*cos + (y - k)*sin)) - ((a**2) * sin * (h*sin + (y - k)*cos)))
-            c_term = ((b**2) * ((-h*cos + (y - k)*sin)**2) + (a**2) * ((h*sin + (y - k)*cos)**2) - (a**2)*(b**2)) 
-            if not(b_term**2 - 4 * a_term * c_term < 0):
-                x_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                x_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)    
-                if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
-                    return True
-        return False
     
     def func(self, x):
         sin = np.sin(self.theta)
         cos = np.cos(self.theta)
         return ((self.b**2) * ((((x[0] - self.h)*cos) + ((x[1] - self.k)*sin))**2) 
-            - (self.a**2) * ((((x[0] - self.h)*sin) - ((x[1] - self.k)*cos))**2) 
+            - (self.a**2) * ((-((x[0] - self.h)*sin) + ((x[1] - self.k)*cos))**2) 
             - (self.a**2) * (self.b**2))
 
     def output(self, dist, initPoint, initDir, n1, n2, isPlot):
@@ -389,11 +305,13 @@ class Hyperbola(Object):
 
 
 class Ellipse(Object):
-    def __init__(self, a, b, h, k, boxsize, outputType, theta=0, notLens="True"):
+    def __init__(self, a, b, h, k, boxsize, outputType, theta=0, notLens=True):
         if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
             self.objType = outputType
         else:
-            raise Exception("Type must be \"reflection\", \"refraction\", or \"both\"")
+            raise Exception("Type must be \"reflection\", \"refraction\"") #, or \"both\"")
+        if a == 0 and b == 0:
+            raise Exception("a and b cannot both be 0")
         self.a = a
         self.b = b
         self.h = h
@@ -426,69 +344,29 @@ class Ellipse(Object):
             - (a**2)*(b**2))      
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
-        distance_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-        distance_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
+        dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
 
-        if distance_add <= 1e-12 and distance_min <= 1e-12:
-            return -1
-        elif distance_add <= 1e-12:
-            distance_true = distance_min
-        elif distance_min <= 1e-12:
-            distance_true = distance_add
+        dists = dists[dists > 1e-12]
+        goodDists = np.array([])
+        for myDist in dists:
+            intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
+            if not(any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5))):
+                goodDists = np.append(goodDists, myDist)
+        if len(goodDists) > 0:
+            return min(goodDists)
         else:
-            distance_true = min(distance_add, distance_min)
-            intercept1 = np.array([initPoint[0] + min(distance_add, distance_min)*initDir[0], initPoint[1] + min(distance_add, distance_min)*initDir[1]])
-            if any(abs(intercept1 - np.array([h, k])) > (self.boxsize * 1.5)):
-                distance_true = max(distance_add, distance_min)
-
-        intercept = np.array([initPoint[0] + distance_true*initDir[0], initPoint[1] + distance_true*initDir[1]])
-        if any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5)):
             return -1
-        
-        return distance_true
-
-    def crosses_box_boundary(self, boxcenter):
-        a = self.a
-        b = self.b
-        h = self.h
-        k = self.k
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        x_tests = [boxcenter[0] - (self.boxsize / 2), boxcenter[0] + (self.boxsize / 2)]
-        y_tests = [boxcenter[1] - (self.boxsize / 2), boxcenter[1] + (self.boxsize / 2)]
-
-        for x in x_tests:
-            a_term = ((b**2) * (sin**2)) + ((a**2) * (cos**2)) 
-            b_term = 2 * (((b**2) * sin * ((x - h)*cos - k*sin)) - ((a**2) * cos * ((x - h)*sin + k*cos)))
-            c_term = ((b**2) * (((x - h)*cos - k*sin)**2) + (a**2) * (((x - h)*sin + k*cos)**2) - (a**2)*(b**2))
-            if not(b_term**2 - 4 * a_term * c_term < 0):
-                y_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                y_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                if (y_add >= y_tests[0] and y_add <= y_tests[1]) or (y_min >= y_tests[0] and y_min <= y_tests[1]):
-                    return True
-            
-        for y in y_tests:
-            a_term = ((b**2) * (cos**2)) + ((a**2) * (sin**2)) 
-            b_term = 2 * (((b**2) * cos * (-h*cos + (y - k)*sin)) - ((a**2) * sin * (h*sin + (y - k)*cos)))
-            c_term = ((b**2) * ((-h*cos + (y - k)*sin)**2) + (a**2) * ((h*sin + (y - k)*cos)**2) - (a**2)*(b**2)) 
-            if not(b_term**2 - 4 * a_term * c_term < 0):
-                x_add = (-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)
-                x_min = (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)    
-                if (x_add >= x_tests[0] and x_add <= x_tests[1]) or (x_min >= x_tests[0] and x_min <= x_tests[1]):
-                    return True
-        return False
 
     def func(self, x):
         sin = np.sin(self.theta)
         cos = np.cos(self.theta)
         return ((self.b**2) * (((x[0] - self.h)*cos + (x[1] - self.k)*sin)**2) 
-            + (self.a**2) * (((x[0] - self.h)*sin - (x[1] - self.k)*cos)**2) 
+            + (self.a**2) * ((-(x[0] - self.h)*sin + (x[1] - self.k)*cos)**2) 
             - ((self.a**2) * (self.b**2)))
 
     def output(self, dist, initPoint, initDir, n1, n2, isPlot):
         print('ELLIPSE')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
-
 
 
 #Convex/concave lens using two curved surfaces

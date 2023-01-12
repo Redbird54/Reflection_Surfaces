@@ -18,8 +18,8 @@ nextPoint, nextRefl = np.array([-10,-40]),np.array([1,4])
 initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
 initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
 initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
-# initialObjs.append(Parabola(1,-15,13,boxsize,"refraction",5*math.pi/3))
-initialObjs.append(Lens(-15,13,7,10,5,boxsize,9*math.pi/20))
+initialObjs.append(Parabola(1,-15,13,boxsize,"refraction",5*math.pi/3))
+# initialObjs.append(Lens(-15,13,7,10,5,boxsize,9*math.pi/20))
 # initialObjs.append(Linear_Lens(-15,13,4,boxsize,18*math.pi/20))
 
 for obj in initialObjs:
@@ -61,16 +61,17 @@ for x in range(interactions):
                 distSmall = dist
                 currObj = obj
 
-    nextPoint,nextRefl,nextRefr = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], indivPlots)
-    if not(np.array_equal(nextRefl,currInfo[1])):
-        outputs.put([nextPoint,nextRefl,currInfo[2],currInfo[3]])
-    elif (np.array_equal(nextRefr,currInfo[1])):
-        ##Show rays not interacting with curves here
-        t = np.linspace(0, 30, 500)
-        plt.plot(nextPoint[0] + t*nextRefl[0], nextPoint[1] + t*nextRefl[1],'orange')
-    if not(np.array_equal(nextRefr,currInfo[1])):
-        if not(any(np.isnan(nextRefr))):
-            outputs.put([nextPoint,nextRefr,currInfo[3],currInfo[2]])
+    nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], indivPlots)
+    for nextRay in nextRays: 
+        if not(np.array_equal(nextRay[1],currInfo[1])):
+            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3]])
+        elif (np.array_equal(nextRay[2],currInfo[1])):
+            ##Show rays not interacting with any curves here
+            t = np.linspace(0, 30, 500)
+            plt.plot(nextRay[0][0] + t*nextRay[1][0], nextRay[0][1] + t*nextRay[1][1],'orange')
+        if not(np.array_equal(nextRay[2],currInfo[1])):
+            if not(any(np.isnan(nextRay[2]))):
+                outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2]])
 
 
 
