@@ -62,7 +62,7 @@ class Object:
     def box_edge(self, initPoint, dir):
         nextDist = self.get_distance(initPoint, dir)
         boxDist =  self.get_box_distance(initPoint, dir)
-        if boxDist != -1 and (nextDist == -1 or boxDist <= nexDist):
+        if boxDist != -1 and (nextDist == -1 or boxDist <= nextDist):
             outPoint, outDist = initPoint + boxDist*dir, boxDist
         else:
             outPoint, outDist = initPoint, 0
