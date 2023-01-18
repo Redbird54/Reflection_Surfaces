@@ -95,7 +95,8 @@ class Object:
         #Citation 1 
         outRefl = initDir - 2*(np.dot(initDir, normNorm) * normNorm)
         if np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2)))) >= 0:
-            outRefr = (mu*initNorm) + (normNorm * np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2))))) - (mu * np.dot(normNorm, np.dot(normNorm, initNorm)))
+            #Note: np.dot(normNorm, initNorm) is equal to cos(theta-i) in paper. Also normal vector defined to be in opposite direction of paper
+            outRefr = mu*(initNorm - (normNorm * np.dot(normNorm, initNorm))) + (normNorm * np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2)))))
         else:
             outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
 
