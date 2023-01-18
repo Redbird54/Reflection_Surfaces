@@ -203,6 +203,7 @@ class Polynomial3(Object):
         #     print("The cubic polynomial has a pair of complex conjugate roots and one real root")
 
         #https://www.allmath.com/cubic-equation.php
+        #https://math.vanderbilt.edu/schectex/courses/cubic/
         Q = (3 * A * C - (B**2))/(9 * (A**2))
         R = (9 * A * B * C - 27 * (A**2) * D - 2 * (B**3))/(54 * (A**3))
         rootTest = (Q**3) + (R**2)
@@ -213,9 +214,9 @@ class Polynomial3(Object):
             S = self.cuberoot(R, math.sqrt(abs(rootTest)))
             T = self.cuberoot(R, -math.sqrt(abs(rootTest)))
 
-        lambda1 = complex(S + T - (B/(3*A)))
-        lambda2 = complex(-(S+T)/2 + (S - T)*(1j*math.sqrt(3))/2 -(B/(3*A)))
-        lambda3 = complex(-(S+T)/2 - (S - T)*(1j*math.sqrt(3))/2 -(B/(3*A)))
+        lambda1 = complex(S + T - (B / (3 * A)))
+        lambda2 = complex(-(S + T)/2 + (S - T) * (1j * math.sqrt(3)) / 2 -(B / (3 * A)))
+        lambda3 = complex(-(S + T)/2 - (S - T) * (1j * math.sqrt(3)) / 2 -(B / (3 * A)))
 
         if abs(lambda1.imag) <= 1e-12:
             lambda1 = lambda1.real
