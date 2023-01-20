@@ -47,29 +47,23 @@ class Object:
     def get_distance(self, initPoint, initDir):
         return -1
 
-    def get_box_distance(self, initPoint, dir): ##NOT YET UPDATED FOR 3D
+    def get_box_distance(self, initPoint, dir):
         edge = self.boxsize / 2
         if not(self.h + edge > initPoint[0] and self.h - edge < initPoint[0] and
-            self.k + edge > initPoint[1] and self.k - edge < initPoint[1]): #Intercept not in box
+            self.k + edge > initPoint[1] and self.k - edge < initPoint[1] and 
+            self.l + edge > initPoint[2] and self.l - edge < initPoint[2]): #Intercept not in box
             return -1
         
-        if (self.h + edge - initPoint[0]) / dir[0] >= 0: #Crosses right side of box
-            if initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h + edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
-                outDist = (self.h + edge - initPoint[0]) / dir[0]
-            elif (self.k + edge - initPoint[1])/dir[1] >= 0: #Crosses top of box before right side
-                outDist = (self.k + edge - initPoint[1]) / dir[1]
-            else: #Crosses bottom of box before right side
-                outDist = (self.k - edge - initPoint[1]) / dir[1]
-        elif (self.h - edge - initPoint[0]) / dir[0] >= 0: #Crosses left side of box
-            if initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] >= self.k - edge and initPoint[1] + (self.h - edge - initPoint[0])/dir[0] * dir[1] <= self.k + edge:
-                outDist = (self.h - edge - initPoint[0]) / dir[0]
-            elif (self.k + edge - initPoint[1]) / dir[1] >= 0:
-                outDist = (self.k + edge - initPoint[1]) / dir[1]
-            else:
-                outDist = (self.k - edge - initPoint[1]) / dir[1]
+        dists = np.array([(self.h + edge - initPoint[0]) / dir[0], (self.h - edge - initPoint[0]) / dir[0],
+            (self.k + edge - initPoint[1]) / dir[1], (self.k - edge - initPoint[1]) / dir[1],
+            (self.l + edge - initPoint[2]) / dir[2], (self.l - edge - initPoint[2]) / dir[2]])
+
+        dists = dists[dists >= 0]
+
+        if len(dists) > 0:
+            return min(dists)
         else:
-            outDist = -1
-        return outDist
+            return -1
 
     def box_edge(self, initPoint, dir, ax):
         nextDist = self.get_distance(initPoint, dir)
@@ -118,18 +112,18 @@ class Object:
         else:
             outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
 
-        # ##Find output intercept with box
-        # if self.notLens:
-        #     if self.objType == "reflection":
-        #         outPoint = self.box_edge(intercept, outRefl, ax)
-        #     elif self.objType == "refraction":
-        #         outPoint2 = self.box_edge(intercept, outRefr, ax)
-        #     else:
-        #         outPoint = self.box_edge(intercept, outRefl, ax)
-        #         outPoint2 = self.box_edge(intercept, outRefr, ax)
-        # else:
-        #     outPoint = intercept
-        #     outPoint2 = intercept
+        ##Find output intercept with box
+        if self.notLens:
+            if self.objType == "reflection":
+                outPoint = self.box_edge(intercept, outRefl, ax)
+            elif self.objType == "refraction":
+                outPoint2 = self.box_edge(intercept, outRefr, ax)
+            else:
+                outPoint = self.box_edge(intercept, outRefl, ax)
+                outPoint2 = self.box_edge(intercept, outRefr, ax)
+        else:
+            outPoint = intercept
+            outPoint2 = intercept
 
         outPoint = intercept
         outPoint2 = intercept
