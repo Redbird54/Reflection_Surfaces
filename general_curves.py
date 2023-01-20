@@ -257,8 +257,6 @@ class Polynomial3(Object):
         print('3RD DEGREE POLYNOMIAL')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
 
-
-
 class Polynomial2(Object):
     def __init__(self, a, b, c, d, e, f, h, k, boxsize, outputType, theta=0):
         if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
