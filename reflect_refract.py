@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
-# pip3 install numdifftools
 import numdifftools as nd
 
 class Object:
@@ -61,10 +60,10 @@ class Object:
         plt.plot(initPoint[0] + t*dir[0], initPoint[1] + t*dir[1], 'black')
         return outPoint
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
-        return [[initPoint, initDir, initDir]]
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+        return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -122,11 +121,15 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
-            return [[outPoint, outRefl, initDir]]
+            return [[outPoint, outRefl, initDir, intensity]]
         elif self.objType == "refraction":
-            return [[outPoint2, initDir, outRefr]]
+            return [[outPoint2, initDir, outRefr, intensity]]
         else:
-            return [[outPoint, outRefl, initDir],[outPoint2, initDir, outRefr]]
+            Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
+            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
+            R = 0.5*(Rs + Rp) #Unpolarized
+            T = 1-R
+            return [[outPoint, outRefl, initDir, R*intensity],[outPoint2, initDir, outRefr, T*intensity]]
 
 
 
@@ -183,9 +186,9 @@ class Parabola(Object):
         cos = np.cos(self.theta)
         return (self.a * (((x[0] - self.h)*cos + (x[1] - self.k)*sin)**2) + (x[0] - self.h)*sin - (x[1] - self.k)*cos)
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('PARABOLA')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
 
 
 class Linear(Object):
@@ -227,9 +230,9 @@ class Linear(Object):
     def func(self, x):
         return (self.surfDir[0] * (self.surfPoint[1] - x[1]) + self.surfDir[1] * (x[0] - self.surfPoint[0]))
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('LINEAR')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
 
 
 class Hyperbola(Object):
@@ -292,9 +295,9 @@ class Hyperbola(Object):
             - (self.a**2) * ((-((x[0] - self.h)*sin) + ((x[1] - self.k)*cos))**2) 
             - (self.a**2) * (self.b**2))
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('HYPERBOLA')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
 
 
 class Ellipse(Object):
@@ -357,9 +360,9 @@ class Ellipse(Object):
             + (self.a**2) * ((-(x[0] - self.h)*sin + (x[1] - self.k)*cos)**2) 
             - ((self.a**2) * (self.b**2)))
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('ELLIPSE')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
 
 
 #Convex/concave lens using two curved surfaces
@@ -520,29 +523,29 @@ class Lens:
             + ((x[0] - center[0])*sin - (x[1] - center[1])*cos)**2 
             - (r**2))
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('CIRCULAR LENS')
 
         intercept = initPoint + dist*initDir
 
         if -1e-12 <= (intercept[0] - self.center2[0])**2 + (intercept[1] - self.center2[1])**2 - (self.r2)**2 <= 1e-12:
-            nextPoint, nextRefl, nextRefr = self.lens2.output(dist, initPoint, initDir, n1, n2, False)
+            nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
             distNew = self.lens1.get_distance(nextPoint, nextRefr)
             interceptNew = nextPoint + distNew*nextRefr
             if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5):
                 if distNew != -1:
-                    nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+                    nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
                 else:
                     nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         elif -1e-12 <= (intercept[0] - self.center1[0])**2 + (intercept[1] - self.center1[1])**2 - (self.r1)**2 <= 1e-12:
-            nextPoint, nextRefl, nextRefr = self.lens1.output(dist, initPoint, initDir, n1, n2, False)
+            nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
             distNew = self.lens2.get_distance(nextPoint, nextRefr)
             interceptNew = nextPoint + distNew*nextRefr
             if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5):
                 if distNew != -1:
-                    nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+                    nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
                 else:
                     nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
             else:
@@ -566,7 +569,7 @@ class Lens:
             plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
-        return nextPoint, initDir, nextRefr
+        return [[nextPoint, initDir, nextRefr, intensity]]
 
 
 class Linear_Lens: 
@@ -630,22 +633,22 @@ class Linear_Lens:
     def func(self, center, x):
         return (self.slope[0] * (center[1] - x[1]) + self.slope[1] * (x[0] - center[0]))
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('LINEAR LENS')
 
         intercept = initPoint + dist*initDir
 
         #Testiing which order to refract through lenses, depending on location of intercept
         if (self.theta > 0 and intercept[1] < self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] < self.h):
-            nextPoint, nextRefl, nextRefr = self.lens2.output(dist, initPoint, initDir, n1, n2, False)
+            nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
             if self.lens1.get_distance(nextPoint, nextRefr) != -1:
-                nextPoint, nextRefl, nextRefr = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+                nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         elif (self.theta > 0 and intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] > self.h):
-            nextPoint, nextRefl, nextRefr = self.lens1.output(dist, initPoint, initDir, n1, n2, False)
+            nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
             if self.lens2.get_distance(nextPoint, nextRefr) != -1:
-                nextPoint, nextRefl, nextRefr = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, False)
+                nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         else:
@@ -661,4 +664,4 @@ class Linear_Lens:
             plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
-        return nextPoint, initDir, nextRefr
+        return [[nextPoint, initDir, nextRefr, intensity]]

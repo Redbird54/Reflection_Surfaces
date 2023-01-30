@@ -81,10 +81,10 @@ class Object:
         cos = np.cos(theta)
         return (x1*cos + x2*sin), (x2*cos - x1*sin), x3
 
-    def output(self, dist, initPoint, initDir, n1, n2, ax, isPlot):
-        return [[initPoint, initDir, initDir]]
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
+        return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, ax, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -142,11 +142,15 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
-            return [[outPoint, outRefl, initDir]]
+            return [[outPoint, outRefl, initDir, intensity]]
         elif self.objType == "refraction":
-            return [[outPoint2, initDir, outRefr]]
+            return [[outPoint2, initDir, outRefr, intensity]]
         else:
-            return [[outPoint, outRefl, initDir],[outPoint2, initDir, outRefr]]
+            Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
+            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
+            R = 0.5*(Rs + Rp) #Unpolarized
+            T = 1-R
+            return [[outPoint, outRefl, initDir, R*intensity],[outPoint2, initDir, outRefr, T*intensity]]
 
 
 class Ellipsoid(Object):
@@ -218,9 +222,9 @@ class Ellipsoid(Object):
         + (self.a**2)*(self.b**2) * (((((x[0]-self.h)*cosz + (x[1]-self.k)*sinz)*siny + (x[2]-self.l)*cosy)*cosx - ((x[1]-self.k)*cosz - (x[0]-self.h)*sinz)*sinx)**2)
         - (self.a**2)*(self.b**2)*(self.c**2))
 
-    def output(self, dist, initPoint, initDir, n1, n2, ax, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
         print('ELLIPSOID')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, ax, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, ax, isPlot)
 
 
 class Polynomial2(Object):
@@ -292,9 +296,9 @@ class Polynomial2(Object):
         return (self.a * (x**2) + self.b * (y**2) + self.c * (z**2) + self.d * x * y + self.e * x * z + self.f * y * z
             + self.g * x + self.h1 * y + self.i * z + self.j)
 
-    def output(self, dist, initPoint, initDir, n1, n2, ax, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
         print('2ND DEGREE POLYNOMIAL IN 3D')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, ax, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, ax, isPlot)
 
 
 class Polynomial3(Object):
@@ -429,13 +433,14 @@ class Polynomial3(Object):
             + self.k1 * (y**2) + self.l1 * (z**2) + self.m * x * y + self.n * x * z + self.o * y * z
             + self.p * x + self.q * y + self.r * z + self.s)
 
-    def output(self, dist, initPoint, initDir, n1, n2, ax, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
         print('3RD DEGREE POLYNOMIAL IN 3D')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, ax, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, ax, isPlot)
 
 
 def test3D():
     indivPlots = True
+    intensity = 1
     n1 = 1.0003
     n2 = 1.52
     outputs = queue.Queue()
@@ -446,15 +451,15 @@ def test3D():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
 
-    # objs.append(Ellipsoid(2,1,1,0,0,0,5,"reflection",math.pi/3,3,-math.pi/4))
+    objs.append(Ellipsoid(2,1,1,0,0,0,5,"reflection",math.pi/3,3,-math.pi/4))
     # objs.append(Polynomial2(2,1,0,3,5,-2,0,-1,3,2, 0,0,0.5,5,"reflection",0,0,0))
-    objs.append(Polynomial3(2,1,0,3,5,-2,0,-1,3,2,4,-6,1,0,1,-5,3,3,-2, 0,0,0,5,"reflection",0,0,0))
+    # objs.append(Polynomial3(2,1,0,3,5,-2,0,-1,3,2,4,-6,1,0,1,-5,3,3,-2, 0,0,0,5,"reflection",0,0,0))
 
     for obj in objs:
         if not(indivPlots):
             obj.show_curve(ax)
 
-    outputs.put([nextPoint,nextRefl,n1,n2])
+    outputs.put([nextPoint,nextRefl,n1,n2,intensity])
     currInfo = outputs.get()
     distSmall = -1
     currObj = Object()
@@ -470,17 +475,17 @@ def test3D():
                 distSmall = dist
                 currObj = obj
 
-    nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], ax, indivPlots)
+    nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], ax, indivPlots)
     for nextRay in nextRays: 
         if not(np.array_equal(nextRay[1],currInfo[1])):
-            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3]])
+            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3],nextRay[3]])
         elif (np.array_equal(nextRay[2],currInfo[1])):
             ##Show rays not interacting with any curves here
             t = np.linspace(0, 5, 500)
             ax.plot(nextRay[0][0] + t*nextRay[1][0], nextRay[0][1] + t*nextRay[1][1], nextRay[0][2] + t*nextRay[1][2],'orange')
         if not(np.array_equal(nextRay[2],currInfo[1])):
             if not(any(np.isnan(nextRay[2]))):
-                outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2]])
+                outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2],nextRay[3]])
     if not(indivPlots):
         ax.set_aspect('equal')
         ##Show rays currently in the queue here

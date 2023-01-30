@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
-# pip3 install numdifftools
 import numdifftools as nd
 
 class Object:
@@ -61,10 +60,10 @@ class Object:
         plt.plot(initPoint[0] + t2*dir[0], initPoint[1] + t2*dir[1], 'black')
         return outPoint
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
-        return np.array([[initPoint, initDir, initDir]])
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+        return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -121,11 +120,15 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
-            return np.array([[outPoint, outRefl, initDir]])
+            return [[outPoint, outRefl, initDir, intensity]]
         elif self.objType == "refraction":
-            return np.array([[outPoint2, initDir, outRefr]])
+            return [[outPoint2, initDir, outRefr, intensity]]
         else:
-            return np.array([[outPoint, outRefl, initDir],[outPoint2, initDir, outRefr]])
+            Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
+            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
+            R = 0.5*(Rs + Rp) #Unpolarized
+            T = 1-R
+            return [[outPoint, outRefl, initDir, R*intensity],[outPoint2, initDir, outRefr, T*intensity]]
 
 class Polynomial3(Object):
     def __init__(self, a, b, c, d, e, f, g, h1, i, j, h, k, boxsize, outputType, theta=0):
@@ -245,9 +248,9 @@ class Polynomial3(Object):
         return (self.a * (px**3) + self.b * (py**3) + self.c * (px**2) * py + self.d * px * (py**2) 
             + self.e * (px**2) + self.f * (py**2) + self.g * px * py + self.h1 * px + self.i * py + self.j)
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('3RD DEGREE POLYNOMIAL')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
 
 class Polynomial2(Object):
     def __init__(self, a, b, c, d, e, f, h, k, boxsize, outputType, theta=0):
@@ -309,6 +312,6 @@ class Polynomial2(Object):
         return (self.a * (px**2) + self.b * (py**2) + self.c * px * py + self.d * px 
             + self.e * py + self.f)
 
-    def output(self, dist, initPoint, initDir, n1, n2, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
         print('2ND DEGREE POLYNOMIAL')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)

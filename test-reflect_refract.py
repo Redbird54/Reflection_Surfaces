@@ -6,6 +6,7 @@ import queue
 indivPlots = False
 interactions = 8
 boxsize = 5
+intensity = 1
 
 ##Setting the medium 1 to air, medium 2 to glass
 n1 = 1.0003
@@ -44,7 +45,7 @@ for obj in initialObjs:
                     obj.show_curve()
 
 
-outputs.put([nextPoint,nextRefl,n1,n2])
+outputs.put([nextPoint,nextRefl,n1,n2,intensity])
 
 for x in range(interactions):
     if outputs.empty():
@@ -64,17 +65,17 @@ for x in range(interactions):
                 distSmall = dist
                 currObj = obj
 
-    nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], indivPlots)
+    nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], indivPlots)
     for nextRay in nextRays: 
         if not(np.array_equal(nextRay[1],currInfo[1])):
-            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3]])
+            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3],nextRay[2])
         elif (np.array_equal(nextRay[2],currInfo[1])):
             ##Show rays not interacting with any curves here
             t = np.linspace(0, 30, 500)
             plt.plot(nextRay[0][0] + t*nextRay[1][0], nextRay[0][1] + t*nextRay[1][1],'orange')
         if not(np.array_equal(nextRay[2],currInfo[1])):
             if not(any(np.isnan(nextRay[2]))):
-                outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2]])
+                outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2],nextRay[2]])
 
 
 
