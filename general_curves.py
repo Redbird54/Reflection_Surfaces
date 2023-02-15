@@ -8,6 +8,9 @@ class Object:
     def __init__(self):
         pass
 
+    def get_type(self):
+        return "none"
+
     def show_curve(self):
         x = np.linspace(self.h - self.boxsize * 1.5, self.h + self.boxsize * 1.5, 1000)
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
@@ -154,6 +157,9 @@ class Polynomial3(Object):
         self.theta = theta
         self.notLens = True
 
+    def get_type(self):
+        return self.objType
+
     def get_center(self):
         return self.h, self.k
 
@@ -271,6 +277,9 @@ class Polynomial2(Object):
         self.boxsize = boxsize
         self.theta = theta
         self.notLens = True
+
+    def get_type(self):
+        return self.objType
 
     def get_center(self):
         return self.h, self.k

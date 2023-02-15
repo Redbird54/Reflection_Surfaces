@@ -8,6 +8,9 @@ class Object:
     def __init__(self):
         pass
 
+    def get_type(self):
+        return "none"
+
     def show_curve(self):
         x = np.linspace(self.h - self.boxsize * 1.5, self.h + self.boxsize * 1.5, 1000)
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
@@ -148,6 +151,9 @@ class Parabola(Object):
         self.theta = theta
         self.notLens = True
 
+    def get_type(self):
+        return self.objType
+
     def get_center(self):
         return self.h, self.k
 
@@ -206,6 +212,9 @@ class Linear(Object):
         self.boxsize = boxsize
         self.notLens = notLens
 
+    def get_type(self):
+        return self.objType
+
     def get_center(self):
         return self.h, self.k
 
@@ -250,6 +259,9 @@ class Hyperbola(Object):
         self.boxsize = boxsize
         self.theta = theta
         self.notLens = True
+
+    def get_type(self):
+        return self.objType
 
     def get_center(self):
         return self.h, self.k
@@ -315,6 +327,9 @@ class Ellipse(Object):
         self.boxsize = boxsize
         self.theta = theta
         self.notLens = notLens
+
+    def get_type(self):
+        return self.objType
 
     def get_center(self):
         return self.h, self.k
@@ -413,6 +428,9 @@ class Lens:
                     break
 
             self.slope = np.array([-math.sin(theta), math.cos(theta)])
+
+    def get_type(self):
+        return "refraction"
 
     def findBoxPoint(self, r, center, middle, var, side):
         ##Var is 0  when testing for y, 1 when testing for x
@@ -593,6 +611,9 @@ class Linear_Lens:
         self.lens1 = Linear(self.center1[0], self.center1[1], self.slope[0], self.slope[1], self.boxsize, "refraction", notLens = False)
         self.lens2 = Linear(self.center2[0], self.center2[1], self.slope[0], self.slope[1], self.boxsize, "refraction", notLens = False)
     
+    def get_type(self):
+        return "refraction"
+
     def get_center(self):
         return self.h, self.k
 

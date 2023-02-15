@@ -10,6 +10,9 @@ class Object:
     def __init__(self):
         pass
 
+    def get_type(self):
+        return "none"
+
     def show_curve(self, ax):
         ##CURRENTLY ONLY SHOWS ELLIPSOIDS
 
@@ -198,6 +201,9 @@ class Ellipsoid(Object):
         self.thetaz = thetaz
         self.notLens = notLens
 
+    def get_type(self):
+        return self.objType
+
     def get_center(self):
         return self.h, self.k, self.l
 
@@ -275,6 +281,9 @@ class Polynomial2(Object):
         self.thetay = thetay
         self.thetaz = thetaz
         self.notLens = notLens
+
+    def get_type(self):
+        return self.objType
 
     def get_center(self):
         return self.h, self.k, self.l
@@ -520,17 +529,21 @@ def test3D():
                 distSmall = dist
                 currObj = obj
 
-    nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], ax, indivPlots)
-    for nextRay in nextRays: 
-        if not(np.array_equal(nextRay[1],currInfo[1])):
-            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3],nextRay[3]])
-        elif (np.array_equal(nextRay[2],currInfo[1])):
-            ##Show rays not interacting with any curves here
-            t = np.linspace(0, 5, 500)
-            ax.plot(nextRay[0][0] + t*nextRay[1][0], nextRay[0][1] + t*nextRay[1][1], nextRay[0][2] + t*nextRay[1][2],'orange')
-        if not(np.array_equal(nextRay[2],currInfo[1])):
-            if not(any(np.isnan(nextRay[2]))):
-                outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2],nextRay[3]])
+    if currObj.get_type() == "none":
+        ##Show rays not interacting with any curves here
+        t = np.linspace(0, 5, 500)
+        ax.plot(currInfo[0][0] + t*currInfo[1][0], currInfo[0][1] + t*currInfo[1][1], currInfo[0][2] + t*currInfo[1][2], 'orange')
+    else:
+        nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], ax, indivPlots)
+        for nextRay in nextRays:
+            if np.array_equal(nextRay[1], currInfo[1]) and np.array_equal(nextRay[2], currInfo[1]):
+                outputs.put([nextRay[0], nextRay[2], currInfo[3], currInfo[2], nextRay[2]])
+            else:
+                if not(np.array_equal(nextRay[1],currInfo[1])):
+                    outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3],nextRay[3]])
+                if not(np.array_equal(nextRay[2],currInfo[1])):
+                    if not(any(np.isnan(nextRay[2]))):
+                        outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2],nextRay[3]])
     if not(indivPlots):
         ax.set_aspect('equal')
         ax.set_xlim(-10,10)
