@@ -68,7 +68,7 @@ for x in range(interactions):
     nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], indivPlots)
     for nextRay in nextRays: 
         if not(np.array_equal(nextRay[1],currInfo[1])):
-            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3],nextRay[2])
+            outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3],nextRay[2]])
         elif (np.array_equal(nextRay[2],currInfo[1])):
             ##Show rays not interacting with any curves here
             t = np.linspace(0, 30, 500)

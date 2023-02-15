@@ -16,7 +16,7 @@ class Object:
         self.show_box(self.h, self.k)
 
         ##Equation of curve
-        plt.contour(hypx, hypy, (self.func([hypx, hypy])), [0], colors='red')
+        plt.contour(hypx, hypy, self.func([hypx, hypy]), [0], colors='red')
 
     def show_box(self, h, k):
         # PLOT CRYPTO RECTANGLE 
