@@ -3,6 +3,7 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 import numdifftools as nd
+import decimal
 
 class Object:
     def __init__(self):
@@ -16,7 +17,7 @@ class Object:
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
 
-        self.show_box(self.h, self.k)
+        # self.show_box(self.h, self.k)
 
         ##Equation of curve
         plt.contour(hypx, hypy, self.func([hypx, hypy]), [0], colors='red')
@@ -46,27 +47,25 @@ class Object:
             (self.k + edge - initPoint[1]) / dir[1], (self.k - edge - initPoint[1]) / dir[1]])
 
         dists = dists[dists >= 0]
-
-        if len(dists) > 0:
-            return min(dists)
-        else:
-            return -1
+        return min(dists)
 
     def box_edge(self, initPoint, dir):
         nextDist = self.get_distance(initPoint, dir)
         boxDist =  self.get_box_distance(initPoint, dir)
         if boxDist != -1 and (nextDist == -1 or boxDist <= nextDist):
             outPoint, outDist = initPoint + boxDist*dir, boxDist
+            isBoxEdge = 1
         else:
             outPoint, outDist = initPoint, 0
+            isBoxEdge = 0
         t2 = np.linspace(0, outDist, 100)
         plt.plot(initPoint[0] + t2*dir[0], initPoint[1] + t2*dir[1], 'black')
-        return outPoint
+        return outPoint, isBoxEdge
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -94,17 +93,19 @@ class Object:
             outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
 
         ##Find output intercept with box
-        if self.notLens:
+        if self.notLens and boxedge:
             if self.objType == "reflection":
-                outPoint = self.box_edge(intercept, outRefl)
+                #USED WHEN WE HAVE TRANSFORMATION OCCURING ON EDGE OF A BOX
+                outPoint, isBoxEdge = self.box_edge(intercept, outRefl)
             elif self.objType == "refraction":
-                outPoint2 = self.box_edge(intercept, outRefr)
+                outPoint2, isBoxEdge = self.box_edge(intercept, outRefr)
             else:
-                outPoint = self.box_edge(intercept, outRefl)
-                outPoint2 = self.box_edge(intercept, outRefr)
+                outPoint, isBoxEdge = self.box_edge(intercept, outRefl)
+                outPoint2, isBoxEdge = self.box_edge(intercept, outRefr)
         else:
             outPoint = intercept
             outPoint2 = intercept
+            isBoxEdge = 0
             
         ##Show plot
         if isPlot:
@@ -123,15 +124,15 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
-            return [[outPoint, outRefl, initDir, intensity]]
+            return [[outPoint, outRefl, initDir, intensity, isBoxEdge]]
         elif self.objType == "refraction":
-            return [[outPoint2, initDir, outRefr, intensity]]
+            return [[outPoint2, initDir, outRefr, intensity, isBoxEdge]]
         else:
             Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
             Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
             R = 0.5*(Rs + Rp) #Unpolarized
             T = 1-R
-            return [[outPoint, outRefl, initDir, R*intensity],[outPoint2, initDir, outRefr, T*intensity]]
+            return [[outPoint, outRefl, initDir, R*intensity, isBoxEdge],[outPoint2, initDir, outRefr, T*intensity, isBoxEdge]]
 
 class Polynomial3(Object):
     def __init__(self, a, b, c, d, e, f, g, h1, i, j, h, k, boxsize, outputType, theta=0):
@@ -219,11 +220,11 @@ class Polynomial3(Object):
         lambda2 = complex(-(S + T)/2 + (S - T) * (1j * math.sqrt(3)) / 2 -(B / (3 * A)))
         lambda3 = complex(-(S + T)/2 - (S - T) * (1j * math.sqrt(3)) / 2 -(B / (3 * A)))
 
-        if abs(lambda1.imag) <= 1e-12:
+        if abs(lambda1.imag) <= 1e-11:
             lambda1 = lambda1.real
-        if abs(lambda2.imag) <= 1e-12:
+        if abs(lambda2.imag) <= 1e-11:
             lambda2 = lambda2.real
-        if abs(lambda3.imag) <= 1e-12:
+        if abs(lambda3.imag) <= 1e-11:
             lambda3 = lambda3.real
 
         if not(isinstance(lambda1, complex)):
@@ -235,7 +236,7 @@ class Polynomial3(Object):
         if not(isinstance(lambda3, complex)):
             dists = np.append(dists, lambda3)
 
-        dists = dists[dists > 1e-12]
+        dists = dists[dists > 1e-11]
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
@@ -254,9 +255,9 @@ class Polynomial3(Object):
         return (self.a * (px**3) + self.b * (py**3) + self.c * (px**2) * py + self.d * px * (py**2) 
             + self.e * (px**2) + self.f * (py**2) + self.g * px * py + self.h1 * px + self.i * py + self.j)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('3RD DEGREE POLYNOMIAL')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
 
 class Polynomial2(Object):
     def __init__(self, a, b, c, d, e, f, h, k, boxsize, outputType, theta=0):
@@ -302,7 +303,7 @@ class Polynomial2(Object):
             return (-C)/B
         dists = np.array([(-B + np.sqrt(B**2 - 4 * A * C)) / (2 * A), (-B - np.sqrt(B**2 - 4 * A * C)) / (2 * A)])
 
-        dists = dists[dists > 1e-12]
+        dists = dists[dists > 1e-11]
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
@@ -321,6 +322,6 @@ class Polynomial2(Object):
         return (self.a * (px**2) + self.b * (py**2) + self.c * px * py + self.d * px 
             + self.e * py + self.f)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('2ND DEGREE POLYNOMIAL')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)

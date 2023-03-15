@@ -3,6 +3,7 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 import numdifftools as nd
+import decimal
 
 class Object:
     def __init__(self):
@@ -16,7 +17,7 @@ class Object:
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
 
-        self.show_box(self.h, self.k)
+        # self.show_box(self.h, self.k)
 
         ##Equation of curve
         plt.contour(hypx, hypy, self.func([hypx, hypy]), [0], colors='red')
@@ -46,27 +47,25 @@ class Object:
             (self.k + edge - initPoint[1]) / dir[1], (self.k - edge - initPoint[1]) / dir[1]])
 
         dists = dists[dists >= 0]
-
-        if len(dists) > 0:
-            return min(dists)
-        else:
-            return -1
+        return min(dists)
 
     def box_edge(self, initPoint, dir):
         nextDist = self.get_distance(initPoint, dir)
         boxDist =  self.get_box_distance(initPoint, dir)
         if boxDist != -1 and (nextDist == -1 or boxDist <= nextDist):
             outPoint, outDist = initPoint + boxDist*dir, boxDist
+            isBoxEdge = 1
         else:
             outPoint, outDist = initPoint, 0
+            isBoxEdge = 0
         t = np.linspace(0, outDist, 100)
         plt.plot(initPoint[0] + t*dir[0], initPoint[1] + t*dir[1], 'black')
-        return outPoint
+        return outPoint, isBoxEdge
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -95,17 +94,18 @@ class Object:
             outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
 
         ##Find output intercept with box
-        if self.notLens:
+        if self.notLens and boxedge:
             if self.objType == "reflection":
-                outPoint = self.box_edge(intercept, outRefl)
+                outPoint, isBoxEdge = self.box_edge(intercept, outRefl)
             elif self.objType == "refraction":
-                outPoint2 = self.box_edge(intercept, outRefr)
+                outPoint2, isBoxEdge = self.box_edge(intercept, outRefr)
             else:
-                outPoint = self.box_edge(intercept, outRefl)
-                outPoint2 = self.box_edge(intercept, outRefr)
+                outPoint, isBoxEdge = self.box_edge(intercept, outRefl)
+                outPoint2, isBoxEdge = self.box_edge(intercept, outRefr)
         else:
             outPoint = intercept
             outPoint2 = intercept
+            isBoxEdge = 0
             
         ##Show plot
         if isPlot:
@@ -124,15 +124,15 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
-            return [[outPoint, outRefl, initDir, intensity]]
+            return [[outPoint, outRefl, initDir, intensity, isBoxEdge]]
         elif self.objType == "refraction":
-            return [[outPoint2, initDir, outRefr, intensity]]
+            return [[outPoint2, initDir, outRefr, intensity, isBoxEdge]]
         else:
             Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
             Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
             R = 0.5*(Rs + Rp) #Unpolarized
             T = 1-R
-            return [[outPoint, outRefl, initDir, R*intensity],[outPoint2, initDir, outRefr, T*intensity]]
+            return [[outPoint, outRefl, initDir, R*intensity, isBoxEdge],[outPoint2, initDir, outRefr, T*intensity, isBoxEdge]]
 
 
 
@@ -176,7 +176,7 @@ class Parabola(Object):
             return (-c_term)/b_term
         dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
 
-        dists = dists[dists > 1e-12]
+        dists = dists[dists > 1e-11]
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
@@ -192,9 +192,9 @@ class Parabola(Object):
         cos = np.cos(self.theta)
         return (self.a * (((x[0] - self.h)*cos + (x[1] - self.k)*sin)**2) + (x[0] - self.h)*sin - (x[1] - self.k)*cos)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('PARABOLA')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
 
 
 class Linear(Object):
@@ -227,7 +227,7 @@ class Linear(Object):
             return -1
         distance = (surfDir[0] * (initPoint[1] - surfPoint[1]) + surfDir[1] * (surfPoint[0] - initPoint[0])) / (surfDir[1]*initDir[0] - surfDir[0]*initDir[1])
 
-        if distance <= 1e-12:
+        if distance <= 1e-11:
             return -1
 
         intercept = np.array([initPoint[0] + distance*initDir[0], initPoint[1] + distance*initDir[1]])
@@ -239,9 +239,9 @@ class Linear(Object):
     def func(self, x):
         return (self.surfDir[0] * (self.surfPoint[1] - x[1]) + self.surfDir[1] * (x[0] - self.surfPoint[0]))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('LINEAR')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
 
 
 class Hyperbola(Object):
@@ -289,7 +289,7 @@ class Hyperbola(Object):
             return -1
         dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
 
-        dists = dists[dists > 1e-12]
+        dists = dists[dists > 1e-11]
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
@@ -307,9 +307,9 @@ class Hyperbola(Object):
             - (self.a**2) * ((-((x[0] - self.h)*sin) + ((x[1] - self.k)*cos))**2) 
             - (self.a**2) * (self.b**2))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('HYPERBOLA')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
 
 
 class Ellipse(Object):
@@ -357,7 +357,7 @@ class Ellipse(Object):
             return -1
         dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
 
-        dists = dists[dists > 1e-12]
+        dists = dists[dists > 1e-11]
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
@@ -375,13 +375,55 @@ class Ellipse(Object):
             + (self.a**2) * ((-(x[0] - self.h)*sin + (x[1] - self.k)*cos)**2) 
             - ((self.a**2) * (self.b**2)))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('ELLIPSE')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
 
 
 #Convex/concave lens using two curved surfaces
-class Lens: 
+class ParentLens:
+    def __init__(self):
+        pass
+    
+    def show_box(self, h, k):
+        # PLOT CRYPTO RECTANGLE 
+        plt.plot([h + (self.boxsize / 2), h + (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
+        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k + (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
+        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k - (self.boxsize / 2)], color = 'blue')
+        plt.plot([h - (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
+
+        plt.plot([h + (self.boxsize * 1.5), h + (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
+        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k + (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
+        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k - (self.boxsize * 1.5)], color = 'brown')
+        plt.plot([h - (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
+
+    def get_box_distance(self, initPoint, dir):
+        edge = self.boxsize / 2
+        if not(self.h + edge > initPoint[0] and self.h - edge < initPoint[0] and
+            self.k + edge > initPoint[1] and self.k - edge < initPoint[1]): #Intercept not in box
+            return -1
+
+        dists = np.array([(self.h + edge - initPoint[0]) / dir[0], (self.h - edge - initPoint[0]) / dir[0],
+            (self.k + edge - initPoint[1]) / dir[1], (self.k - edge - initPoint[1]) / dir[1]])
+
+        dists = dists[dists >= 0]
+        return min(dists)
+
+    def box_edge(self, initPoint, dir):
+        nextDist = self.get_distance(initPoint, dir)
+        boxDist =  self.get_box_distance(initPoint, dir)
+        if boxDist != -1 and (nextDist == -1 or boxDist <= nextDist):
+            outPoint, outDist = initPoint + boxDist*dir, boxDist
+            isBoxEdge = 1
+        else:
+            outPoint, outDist = initPoint, 0
+            isBoxEdge = 0
+        t = np.linspace(0, outDist, 100)
+        plt.plot(initPoint[0] + t*dir[0], initPoint[1] + t*dir[1], 'black')
+        return outPoint, isBoxEdge
+
+
+class Lens(ParentLens): 
     def __init__(self, h, k, r1, r2, height, boxsize, theta=0):
         self.h = h
         self.k = k
@@ -455,7 +497,7 @@ class Lens:
         return self.h, self.k
 
     def show_curve(self):
-        self.show_box(self.h, self.k)
+        # super().show_box(self.h, self.k)
         if self.height > 0:
             t = np.linspace(self.theta + math.pi - self.theta1, self.theta + math.pi + self.theta1, 100)
             t2 = np.linspace(self.theta + self.theta2, self.theta - self.theta2, 100)
@@ -470,18 +512,6 @@ class Lens:
 
             plt.contour(hypx, hypy, (self.func(self.center1, [hypx, hypy], self.r1)), [0], colors='red')
             plt.contour(hypx, hypy, (self.func(self.center2, [hypx, hypy], self.r2)), [0], colors='red')
-
-    def show_box(self, h, k):
-        # PLOT CRYPTO RECTANGLE 
-        plt.plot([h + (self.boxsize / 2), h + (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
-        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k + (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
-        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k - (self.boxsize / 2)], color = 'blue')
-        plt.plot([h - (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
-
-        plt.plot([h + (self.boxsize * 1.5), h + (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
-        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k + (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
-        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k - (self.boxsize * 1.5)], color = 'brown')
-        plt.plot([h - (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
         
     def get_distance(self, initPoint, initDir):
         dist1 = self.lens1.get_distance(initPoint, initDir)
@@ -541,35 +571,31 @@ class Lens:
             + ((x[0] - center[0])*sin - (x[1] - center[1])*cos)**2 
             - (r**2))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('CIRCULAR LENS')
 
         intercept = initPoint + dist*initDir
 
-        if -1e-12 <= (intercept[0] - self.center2[0])**2 + (intercept[1] - self.center2[1])**2 - (self.r2)**2 <= 1e-12:
-            nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
+        if -1e-11 <= (intercept[0] - self.center2[0])**2 + (intercept[1] - self.center2[1])**2 - (self.r2)**2 <= 1e-11:
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
             distNew = self.lens1.get_distance(nextPoint, nextRefr)
             interceptNew = nextPoint + distNew*nextRefr
-            if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5):
-                if distNew != -1:
-                    nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
-                else:
-                    nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
+            if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5) and distNew != -1:
+                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
-        elif -1e-12 <= (intercept[0] - self.center1[0])**2 + (intercept[1] - self.center1[1])**2 - (self.r1)**2 <= 1e-12:
-            nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
+        elif -1e-11 <= (intercept[0] - self.center1[0])**2 + (intercept[1] - self.center1[1])**2 - (self.r1)**2 <= 1e-11:
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
             distNew = self.lens2.get_distance(nextPoint, nextRefr)
             interceptNew = nextPoint + distNew*nextRefr
-            if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5):
-                if distNew != -1:
-                    nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
-                else:
-                    nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
+            if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5) and distNew != -1:
+                    (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         else:
             nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
+
+        nextPoint, isBoxEdge = super().box_edge(nextPoint, nextRefr)
 
         focalLength = 1 / ((n2 - 1) * ((1 / self.r1) + (1 / self.r2) - (((n2 - 1) * self.height) / (n2 * self.r1 * self.r2))))
         print("Focal length: ", focalLength)
@@ -587,10 +613,10 @@ class Lens:
             plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
-        return [[nextPoint, initDir, nextRefr, intensity]]
+        return [[nextPoint, initDir, nextRefr, intensity, isBoxEdge]]
 
 
-class Linear_Lens: 
+class Linear_Lens(ParentLens): 
     def __init__(self, h, k, height, boxsize, theta=0):
         self.h = h
         self.k = k
@@ -622,23 +648,11 @@ class Linear_Lens:
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
 
-        self.show_box(self.h, self.k)
+        # super().show_box(self.h, self.k)
 
         ##Equation of curve
         plt.contour(hypx, hypy, (self.func(self.center1, [hypx, hypy])), [0], colors='red')
         plt.contour(hypx, hypy, (self.func(self.center2, [hypx, hypy])), [0], colors='red')
-
-    def show_box(self, h, k):
-        # PLOT CRYPTO RECTANGLE 
-        plt.plot([h + (self.boxsize / 2), h + (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
-        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k + (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
-        plt.plot([h + (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k - (self.boxsize / 2)], color = 'blue')
-        plt.plot([h - (self.boxsize / 2), h - (self.boxsize / 2)], [k - (self.boxsize / 2), k + (self.boxsize / 2)], color = 'blue')
-
-        plt.plot([h + (self.boxsize * 1.5), h + (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
-        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k + (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
-        plt.plot([h + (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k - (self.boxsize * 1.5)], color = 'brown')
-        plt.plot([h - (self.boxsize * 1.5), h - (self.boxsize * 1.5)], [k - (self.boxsize * 1.5), k + (self.boxsize * 1.5)], color = 'brown')
         
     def get_distance(self, initPoint, initDir):
         dist1 = self.lens1.get_distance(initPoint, initDir)
@@ -654,26 +668,28 @@ class Linear_Lens:
     def func(self, center, x):
         return (self.slope[0] * (center[1] - x[1]) + self.slope[1] * (x[0] - center[0]))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('LINEAR LENS')
 
         intercept = initPoint + dist*initDir
 
         #Testiing which order to refract through lenses, depending on location of intercept
         if (self.theta > 0 and intercept[1] < self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] < self.h):
-            nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
             if self.lens1.get_distance(nextPoint, nextRefr) != -1:
-                nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
+                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         elif (self.theta > 0 and intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] > self.h):
-            nextPoint, nextRefl, nextRefr, intensity = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, False)[0]
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
             if self.lens2.get_distance(nextPoint, nextRefr) != -1:
-                nextPoint, nextRefl, nextRefr, intensity = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, False)[0]
+                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         else:
             nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
+
+        nextPoint, isBoxEdge = super().box_edge(nextPoint, nextRefr)
 
         if isPlot:
             t = np.linspace(0, 10, 500)
@@ -685,4 +701,4 @@ class Linear_Lens:
             plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
-        return [[nextPoint, initDir, nextRefr, intensity]]
+        return [[nextPoint, initDir, nextRefr, intensity, isBoxEdge]]
