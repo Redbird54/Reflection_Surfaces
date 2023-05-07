@@ -7,8 +7,8 @@ import queue
 indivPlots = False
 interactions = 12
 boxsize = 5
-intensity = 1
 boxedge = False
+intensity = 1
 
 ##Setting the medium 1 to air, medium 2 to glass
 n1 = 1.0003
@@ -18,6 +18,21 @@ outputs = queue.Queue()
 reverse = queue.Queue()
 initialObjs = []
 objs = []
+
+if interactions < 1:
+    raise Exception("interactions must be positive")
+
+startPoint, startDir = np.array([-5,-20]),np.array([1,4])
+# initialObjs.append(Polynomial3(5, 2, 3, -1, 7, 2, 0, -4, 1, -2, 0, 0,boxsize,"reflection"))
+# initialObjs.append(Polynomial2(5, 3, 7, 5, -1, 0, 0, 0,boxsize,"reflection"))
+initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
+initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
+initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
+initialObjs.append(Parabola(1,-15,13,boxsize,"reflection",5*math.pi/3))
+# initialObjs.append(Polynomial3(5, 2, 3, -1, 7, 2, 0, -4, 1, -2, 4, -9,boxsize,"reflection", math.pi/2))
+# initialObjs.append(Parabola(1,2,8,boxsize,"reflection",-math.pi/6))
+# initialObjs.append(Lens(-15,13,7,10,5,boxsize,9*math.pi/20))
+# initialObjs.append(Linear_Lens(-15,13,4,boxsize,18*math.pi/20))
 
 def get_valid_objs(initialObjs, objs, startPoint):
     for obj in initialObjs:
@@ -82,43 +97,38 @@ def find_rays(outputs, objs, numbInteractions):
                     outRay2 = nextRay[2]
                     
                 if np.array_equal(nextRay[1], currInfo[1]) and np.array_equal(nextRay[2], currInfo[1]):
-                    outputs.put([nextRay[0], nextRay[2], currInfo[3], currInfo[2], nextRay[2]])
+                    outputs.put([nextRay[0], nextRay[2], currInfo[3], currInfo[2], nextRay[3]])
                 else:
                     if not(np.array_equal(nextRay[1], currInfo[1])):
-                        outputs.put([nextRay[0], nextRay[1], currInfo[2], currInfo[3], nextRay[2]])
+                        outputs.put([nextRay[0], nextRay[1], currInfo[2], currInfo[3], nextRay[3]])
                     if not(np.array_equal(nextRay[2], currInfo[1])):
                         if not(any(np.isnan(nextRay[2]))):
-                            outputs.put([nextRay[0], nextRay[2], currInfo[3], currInfo[2], nextRay[2]])
+                            outputs.put([nextRay[0], nextRay[2], currInfo[3], currInfo[2], nextRay[3]])
     return outputs, outPoint, outRay, outRay2, initMag, isBoxEdge, actionCount
 
-
-startPoint, startRefl = np.array([-5,-20]),np.array([1,4])
-# initialObjs.append(Polynomial3(5, 2, 3, -1, 7, 2, 0, -4, 1, -2, 0, 0,boxsize,"reflection"))
-# initialObjs.append(Polynomial2(5, 3, 7, 5, -1, 0, 0, 0,boxsize,"reflection"))
-initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
-initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
-initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
-initialObjs.append(Parabola(1,-15,13,boxsize,"reflection",5*math.pi/3))
-# initialObjs.append(Lens(-15,13,7,10,5,boxsize,9*math.pi/20))
-# initialObjs.append(Linear_Lens(-15,13,4,boxsize,18*math.pi/20))
-
-
 objs = get_valid_objs(initialObjs, objs, startPoint)
-outputs.put([startPoint, startRefl, n1, n2, intensity])
+outputs.put([startPoint, startDir, n1, n2, intensity])
 outputs, outPoint, outRay, outRay2, mag, isBoxEdge, actionCount = find_rays(outputs, objs, interactions)
-if boxedge and isBoxEdge:
-    inRay = -outRay2
-else:
-    inRay = -outRay
-test1 = np.array([float(encrypt(str(outPoint[0]))), float(encrypt(str(outPoint[1])))])
-test2 = np.array([float(encrypt(str(inRay[0]))), float(encrypt(str(inRay[1])))])
-test3 = float(encrypt(str(mag)))
+if actionCount > 0:
+    if boxedge and isBoxEdge:
+        inRay = -outRay2
+    else:
+        inRay = -outRay
+    test1 = np.array([float(encrypt(str(outPoint[0]))), float(encrypt(str(outPoint[1])))])
+    test2 = np.array([float(encrypt(str(inRay[0]))), float(encrypt(str(inRay[1])))])
+    test3 = float(encrypt(str(mag)))
 
-reverse.put([test1, test2, n1, n2, intensity])
-tests, testPoint, testRay, testRay2, testMag, testFlag, testCount = find_rays(reverse, objs, actionCount)
-t = np.linspace(0, test3, 500)
-print(np.array([testPoint[0] + test3*testRay2[0], testPoint[1] + test3*testRay2[1]]))
-plt.plot(testPoint[0] + t*testRay2[0], testPoint[1] + t*testRay2[1], 'orange')
+    reverse.put([test1, test2, n1, n2, intensity])
+    if actionCount > 1:
+        tests, testPoint, testRay, testRay2, testMag, testFlag, testCount = find_rays(reverse, objs, actionCount)
+    else: 
+        testPoint = test1
+        testRay2 = test2
+    t = np.linspace(0, test3, 500)
+    print(np.array([testPoint[0] + test3*testRay2[0], testPoint[1] + test3*testRay2[1]]))
+    plt.plot(testPoint[0] + t*testRay2[0], testPoint[1] + t*testRay2[1], 'orange')
+else:
+    raise Exception("No interactions occurred, please adjust input parameters")
 
 if not(indivPlots):
     ##Show rays currently in the queue here

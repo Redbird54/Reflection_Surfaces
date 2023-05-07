@@ -62,6 +62,11 @@ class Object:
         plt.plot(initPoint[0] + t2*dir[0], initPoint[1] + t2*dir[1], 'black')
         return outPoint, isBoxEdge
 
+    def rotate(self, x1, x2, theta):
+        sin = np.sin(theta)
+        cos = np.cos(theta)
+        return (x1*cos + x2*sin, -(x1*sin) + x2*cos)
+
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         return [[initPoint, initDir, initDir, intensity]]
 
@@ -90,12 +95,12 @@ class Object:
         if np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2)))) >= 0:
             outRefr = (mu*initNorm) + (normNorm * np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2))))) - (mu * np.dot(normNorm, np.dot(normNorm, initNorm)))
         else:
-            outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
+            outRefr = initDir ##THIS LINE CAN CAUSE ISSUES WITH DECRYPTION, TOTAL INTERNAL REFLECTION##
 
         ##Find output intercept with box
         if self.notLens and boxedge:
             if self.objType == "reflection":
-                #USED WHEN WE HAVE TRANSFORMATION OCCURING ON EDGE OF A BOX
+                #Used when we have transformation occurring on edge of a box
                 outPoint, isBoxEdge = self.box_edge(intercept, outRefl)
             elif self.objType == "refraction":
                 outPoint2, isBoxEdge = self.box_edge(intercept, outRefr)
@@ -128,8 +133,8 @@ class Object:
         elif self.objType == "refraction":
             return [[outPoint2, initDir, outRefr, intensity, isBoxEdge]]
         else:
-            Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
-            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
+            Rs = np.linalg.norm((n1*np.cos(self.theta) - n2*sqrt(1-((n1 / n2)*np.sin(self.theta))**2)) / (n1*np.cos(self.theta) + n2*sqrt(1-((n1 / n2)*np.sin(self.theta))**2)))**2
+            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*np.sin(self.theta))**2) - n2*np.cos(self.theta)) / (n1*sqrt(1-((n1 / n2)*np.sin(self.theta))**2) + n2*np.cos(self.theta)))**2
             R = 0.5*(Rs + Rp) #Unpolarized
             T = 1-R
             return [[outPoint, outRefl, initDir, R*intensity, isBoxEdge],[outPoint2, initDir, outRefr, T*intensity, isBoxEdge]]
@@ -173,12 +178,8 @@ class Polynomial3(Object):
         return mag**(1/3) * np.exp( 1j*arg/3 )
 
     def get_distance(self, initPoint, initDir):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        x = (initPoint[0] - self.h) * cos + (initPoint[1] - self.k) * sin
-        y = -(initPoint[0] - self.h) * sin + (initPoint[1] - self.k) * cos
-        dx = initDir[0] * cos + initDir[1] * sin
-        dy = -initDir[0] * sin + initDir[1] * cos
+        x, y = super().rotate((initPoint[0] - self.h), (initPoint[1] - self.k), self.theta)
+        dx, dy = super().rotate(initDir[0], initDir[1], self.theta)
 
         A = (self.a * (dx**3)) + (self.b * (dy**3)) + (self.c * (dx**2) * dy) + (self.d * dx * (dy**2))
         B = ((self.a * 3 * x * (dx**2)) + (self.b * 3 * y * (dy**2)) + (self.c * (y * (dx**2) + 2 * x * dx * dy)) 
@@ -191,21 +192,6 @@ class Polynomial3(Object):
 
         dists = np.array([])
 
-        #inspiration from : https://www.cuemath.com/algebra/cubic-polynomials/
-        #https://testbook.com/learn/maths-zeros-of-a-cubic-polynomial/
-        # cuberootElement = (B**2)*(C**2) - 4*A*(C**3) - 4*(B**3)*D - 27*(A**2)*(D**2) + 18*A*B*C*D
-        # print("Cuberoot Element: {}".format(cuberootElement))
-        # if cuberootElement == 0: 
-        #     print("The cubic polynomial has real zeros and atleast one repeated zeros")
-
-        # if cuberootElement > 0:
-        #     print("The cubic polynomial has three real and distinct roots")
-
-        # if cuberootElement < 0:
-        #     print("The cubic polynomial has a pair of complex conjugate roots and one real root")
-
-        #https://www.allmath.com/cubic-equation.php
-        #https://math.vanderbilt.edu/schectex/courses/cubic/
         Q = (3 * A * C - (B**2))/(9 * (A**2))
         R = (9 * A * B * C - 27 * (A**2) * D - 2 * (B**3))/(54 * (A**3))
         rootTest = (Q**3) + (R**2)
@@ -247,13 +233,10 @@ class Polynomial3(Object):
         else:
             return -1
 
-    def func(self, x):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        px = (x[0] - self.h) * cos + (x[1] - self.k) * sin
-        py = -(x[0] - self.h) * sin + (x[1] - self.k) * cos
-        return (self.a * (px**3) + self.b * (py**3) + self.c * (px**2) * py + self.d * px * (py**2) 
-            + self.e * (px**2) + self.f * (py**2) + self.g * px * py + self.h1 * px + self.i * py + self.j)
+    def func(self, input):
+        x, y = super().rotate((input[0] - self.h), (input[1] - self.k), self.theta)
+        return (self.a * (x**3) + self.b * (y**3) + self.c * (x**2) * y + self.d * x * (y**2) 
+            + self.e * (x**2) + self.f * (y**2) + self.g * x * y + self.h1 * x + self.i * y + self.j)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('3RD DEGREE POLYNOMIAL')
@@ -286,12 +269,8 @@ class Polynomial2(Object):
         return self.h, self.k
 
     def get_distance(self, initPoint, initDir):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        x = (initPoint[0] - self.h) * cos + (initPoint[1] - self.k) * sin
-        y = -(initPoint[0] - self.h) * sin + (initPoint[1] - self.k) * cos
-        dx = initDir[0] * cos + initDir[1] * sin
-        dy = -initDir[0] * sin + initDir[1] * cos
+        x, y = super().rotate((initPoint[0] - self.h), (initPoint[1] - self.k), self.theta)
+        dx, dy = super().rotate(initDir[0], initDir[1], self.theta)
 
         A = (self.a * (dx**2)) + (self.b * (dy**2)) + (self.c * dx * dy)
         B = (self.a * 2 * x * dx) + (self.b * 2 * y * dy) + (self.c * (y * dx + x * dy)) + (self.d * dx) + (self.e * dy)       
@@ -314,13 +293,10 @@ class Polynomial2(Object):
         else:
             return -1
 
-    def func(self, x):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        px = (x[0] - self.h) * cos + (x[1] - self.k) * sin
-        py = -(x[0] - self.h) * sin + (x[1] - self.k) * cos
-        return (self.a * (px**2) + self.b * (py**2) + self.c * px * py + self.d * px 
-            + self.e * py + self.f)
+    def func(self, input):
+        x, y = super().rotate((input[0] - self.h), (input[1] - self.k), self.theta)
+        return (self.a * (x**2) + self.b * (y**2) + self.c * x * y + self.d * x 
+            + self.e * y + self.f)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('2ND DEGREE POLYNOMIAL')

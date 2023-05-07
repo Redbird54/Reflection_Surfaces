@@ -62,6 +62,11 @@ class Object:
         plt.plot(initPoint[0] + t*dir[0], initPoint[1] + t*dir[1], 'black')
         return outPoint, isBoxEdge
 
+    def rotate(self, x1, x2, theta):
+        sin = np.sin(theta)
+        cos = np.cos(theta)
+        return (x1*cos + x2*sin, -(x1*sin) + x2*cos)
+
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         return [[initPoint, initDir, initDir, intensity]]
 
@@ -124,16 +129,35 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
+                        # print('{0:.16f}'.format(outPoint[1]))
+            #Add in rounding?
+            # testThis = np.array(outPoint, dtype=np.dtype(decimal.Decimal))
+            # testThis2 = np.array(outRefl, dtype=np.dtype(decimal.Decimal))
+
+            # testThis3 = np.array([round(testThis[0], 11), round(testThis[1], 11)])
+            # testThis4 = np.array([round(testThis2[0], 11), round(testThis2[1], 11)])
+            # return [[testThis3, testThis4, initDir, intensity]]
+
+            (whole1, deci1) = math.modf(outPoint[0])
+            deci1 = round(deci1, 11)
+            (whole2, deci2) = math.modf(outPoint[1])
+            deci2 = round(deci2, 11)
+            (whole3, deci3) = math.modf(outRefl[0])
+            deci3 = round(deci3, 11)
+            (whole4, deci4) = math.modf(outRefl[1])
+            deci4 = round(deci4, 11)
+            # return [[np.array([whole1+deci1, whole2+deci2]), np.array([whole3+deci3, whole4+deci4]), initDir, intensity, isBoxEdge]]
+            # return [[np.around(outPoint, 11), np.around(outRefl, 11), initDir, intensity, isBoxEdge]]
+
             return [[outPoint, outRefl, initDir, intensity, isBoxEdge]]
         elif self.objType == "refraction":
             return [[outPoint2, initDir, outRefr, intensity, isBoxEdge]]
         else:
-            Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
-            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
+            Rs = np.linalg.norm((n1*np.cos(self.theta) - n2*sqrt(1-((n1 / n2)*np.sin(self.theta))**2)) / (n1*np.cos(self.theta) + n2*sqrt(1-((n1 / n2)*np.sin(self.theta))**2)))**2
+            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*np.sin(self.theta))**2) - n2*np.cos(self.theta)) / (n1*sqrt(1-((n1 / n2)*np.sin(self.theta))**2) + n2*np.cos(self.theta)))**2
             R = 0.5*(Rs + Rp) #Unpolarized
             T = 1-R
             return [[outPoint, outRefl, initDir, R*intensity, isBoxEdge],[outPoint2, initDir, outRefr, T*intensity, isBoxEdge]]
-
 
 
 class Parabola(Object):
@@ -158,18 +182,13 @@ class Parabola(Object):
         return self.h, self.k
 
     def get_distance(self, initPoint, initDir):
-        a = self.a
-        h = self.h
-        k = self.k
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
+        x, y = super().rotate((initPoint[0] - self.h), (initPoint[1] - self.k), self.theta)
+        dx, dy = super().rotate(initDir[0], initDir[1], self.theta)
 
         ##Find where ray and curve intersect
-        a_term = a * ((initDir[0]*cos + initDir[1]*sin)**2)
-        b_term = ((2 * a * (initDir[0]*cos + initDir[1]*sin) * ((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)) 
-            + (initDir[0]*sin) - (initDir[1]*cos))
-        c_term = (a * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
-            + ((initPoint[0] - h)*sin) - ((initPoint[1] - k)*cos))
+        a_term = self.a * (dx**2)
+        b_term = (2 * self.a * dx * x) - dy
+        c_term = self.a * (x**2) - y
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
         if a_term == 0:
@@ -180,17 +199,16 @@ class Parabola(Object):
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
-            if not(any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5))):
+            if not(any(abs(intercept - np.array([self.h, self.k])) > (self.boxsize * 1.5))):
                 goodDists = np.append(goodDists, myDist)
         if len(goodDists) > 0:
             return min(goodDists)
         else:
             return -1
 
-    def func(self, x):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        return (self.a * (((x[0] - self.h)*cos + (x[1] - self.k)*sin)**2) + (x[0] - self.h)*sin - (x[1] - self.k)*cos)
+    def func(self, input):
+        x, y = super().rotate((input[0] - self.h), (input[1] - self.k), self.theta)
+        return (self.a * (x**2) - y)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('PARABOLA')
@@ -236,8 +254,8 @@ class Linear(Object):
 
         return distance
 
-    def func(self, x):
-        return (self.surfDir[0] * (self.surfPoint[1] - x[1]) + self.surfDir[1] * (x[0] - self.surfPoint[0]))
+    def func(self, input):
+        return (self.surfDir[0] * (self.surfPoint[1] - input[1]) + self.surfDir[1] * (input[0] - self.surfPoint[0]))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('LINEAR')
@@ -269,22 +287,14 @@ class Hyperbola(Object):
     def get_distance(self, initPoint, initDir):
         a = self.a
         b = self.b
-        h = self.h
-        k = self.k
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
+
+        x, y = super().rotate((initPoint[0] - self.h), (initPoint[1] - self.k), self.theta)
+        dx, dy = super().rotate(initDir[0], initDir[1], self.theta)
 
         ##Find where ray and curve intersect
-        a_term = (b**2) * (((initDir[0]*cos) + (initDir[1]*sin))**2) - (a**2) * (((initDir[0]*sin) - (initDir[1]*cos))**2)
-        b_term = 2 * ((b**2) * (((initPoint[0] - h)*initDir[0]*(cos**2)) 
-            + ((initPoint[1] - k)*initDir[1]*(sin**2)) 
-            + ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)) 
-            - (a**2) * (((initPoint[1] - k)*initDir[1]*(cos**2))
-            + ((initPoint[0] - h)*initDir[0]*(sin**2)) 
-            - ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)))
-        c_term = ((b**2) * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
-            - (a**2) * (((initPoint[0] - h)*sin - (initPoint[1] - k)*cos)**2)
-            - (a**2)*(b**2))
+        a_term = (b**2) * (dx**2) - (a**2) * (dy**2)
+        b_term = 2 * ((b**2) * (x * dx) - (a**2) * (y * dy))
+        c_term = (b**2) * (x**2) - (a**2) * (y**2) - (a**2)*(b**2)
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
         dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
@@ -293,19 +303,18 @@ class Hyperbola(Object):
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
-            if not(any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5))):
+            if not(any(abs(intercept - np.array([self.h, self.k])) > (self.boxsize * 1.5))):
                 goodDists = np.append(goodDists, myDist)
         if len(goodDists) > 0:
             return min(goodDists)
         else:
             return -1
     
-    def func(self, x):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        return ((self.b**2) * ((((x[0] - self.h)*cos) + ((x[1] - self.k)*sin))**2) 
-            - (self.a**2) * ((-((x[0] - self.h)*sin) + ((x[1] - self.k)*cos))**2) 
-            - (self.a**2) * (self.b**2))
+    def func(self, input):
+        x, y = super().rotate((input[0] - self.h), (input[1] - self.k), self.theta)
+        return ((self.b**2) * (x**2) 
+            - (self.a**2) * (y**2) 
+            - ((self.a**2) * (self.b**2)))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('HYPERBOLA')
@@ -337,22 +346,14 @@ class Ellipse(Object):
     def get_distance(self, initPoint, initDir):
         a = self.a
         b = self.b
-        h = self.h
-        k = self.k
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
+
+        x, y = super().rotate((initPoint[0] - self.h), (initPoint[1] - self.k), self.theta)
+        dx, dy = super().rotate(initDir[0], initDir[1], self.theta)
 
         ##Find where ray and curve intersect
-        a_term = (b**2) * (((initDir[0]*cos) + (initDir[1]*sin))**2) + (a**2) * (((initDir[0]*sin) - (initDir[1]*cos))**2)
-        b_term = 2 * ((b**2) * (((initPoint[0] - h)*initDir[0]*(cos**2)) 
-            + ((initPoint[1] - k)*initDir[1]*(sin**2)) 
-            + ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)) 
-            + (a**2) * (((initPoint[1] - k)*initDir[1]*(cos**2))
-            + ((initPoint[0] - h)*initDir[0]*(sin**2)) 
-            - ((initPoint[0]*initDir[1] + initPoint[1]*initDir[0] - k*initDir[0] - h*initDir[1])*sin*cos)))
-        c_term = ((b**2) * (((initPoint[0] - h)*cos + (initPoint[1] - k)*sin)**2)
-            + (a**2) * (((initPoint[0] - h)*sin - (initPoint[1] - k)*cos)**2)
-            - (a**2)*(b**2))      
+        a_term = (b**2) * (dx**2) + (a**2) * (dy**2)
+        b_term = 2 * ((b**2) * (x * dx) + (a**2) * (y * dy))
+        c_term = (b**2) * (x**2) + (a**2) * (y**2) - (a**2)*(b**2)      
         if b_term**2 - 4 * a_term * c_term < 0:
             return -1
         dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
@@ -361,18 +362,17 @@ class Ellipse(Object):
         goodDists = np.array([])
         for myDist in dists:
             intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1]])
-            if not(any(abs(intercept - np.array([h, k])) > (self.boxsize * 1.5))):
+            if not(any(abs(intercept - np.array([self.h, self.k])) > (self.boxsize * 1.5))):
                 goodDists = np.append(goodDists, myDist)
         if len(goodDists) > 0:
             return min(goodDists)
         else:
             return -1
 
-    def func(self, x):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        return ((self.b**2) * (((x[0] - self.h)*cos + (x[1] - self.k)*sin)**2) 
-            + (self.a**2) * ((-(x[0] - self.h)*sin + (x[1] - self.k)*cos)**2) 
+    def func(self, input):
+        x, y = super().rotate((input[0] - self.h), (input[1] - self.k), self.theta)
+        return ((self.b**2) * (x**2) 
+            + (self.a**2) * (y**2) 
             - ((self.a**2) * (self.b**2)))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
@@ -421,6 +421,11 @@ class ParentLens:
         t = np.linspace(0, outDist, 100)
         plt.plot(initPoint[0] + t*dir[0], initPoint[1] + t*dir[1], 'black')
         return outPoint, isBoxEdge
+
+    def rotate(self, x1, x2, theta):
+        sin = np.sin(theta)
+        cos = np.cos(theta)
+        return (x1*cos + x2*sin, -(x1*sin) + x2*cos)
 
 
 class Lens(ParentLens): 
@@ -564,12 +569,9 @@ class Lens(ParentLens):
         else:
             return min(dist1, dist2)
 
-    def func(self, center, x, r):
-        sin = np.sin(self.theta)
-        cos = np.cos(self.theta)
-        return (((x[0] - center[0])*cos + (x[1] - center[1])*sin)**2 
-            + ((x[0] - center[0])*sin - (x[1] - center[1])*cos)**2 
-            - (r**2))
+    def func(self, center, input, r):
+        x, y = super().rotate((input[0] - self.center[0]), (input[1] - self.center[1]), self.theta)
+        return (x**2 + y**2 - r**2)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('CIRCULAR LENS')
@@ -665,8 +667,8 @@ class Linear_Lens(ParentLens):
         else:
             return min(dist1, dist2)
 
-    def func(self, center, x):
-        return (self.slope[0] * (center[1] - x[1]) + self.slope[1] * (x[0] - center[0]))
+    def func(self, center, input):
+        return (self.slope[0] * (center[1] - input[1]) + self.slope[1] * (input[0] - center[0]))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         print('LINEAR LENS')

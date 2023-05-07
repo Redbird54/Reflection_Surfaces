@@ -42,9 +42,9 @@ def decrypt_ECC(encryptedMsg, privKey):
     return plaintext
 
 
-def encrypt(msg1):
+def encrypt (msg1):
     msg = msg1.encode('UTF-8')
-    print("original msg:", msg)
+    # print("original msg:", msg)
     privKey = secrets.randbelow(curve.field.n)
     pubKey = privKey * curve.g
 
@@ -58,5 +58,5 @@ def encrypt(msg1):
     print("encrypted msg:", encryptedMsgObj)
 
     decryptedMsg = decrypt_ECC(encryptedMsg, privKey)
-    print("decrypted msg:", decryptedMsg)
+    # print("decrypted msg:", decryptedMsg)
     return decryptedMsg
