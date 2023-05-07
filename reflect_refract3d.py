@@ -16,37 +16,22 @@ class Object:
     def show_curve(self, ax):
         ##CURRENTLY ONLY SHOWS ELLIPSOIDS
 
-        # # Angles for polar coordinates:
-        # u = np.linspace(0, 2 * np.pi, 100)
-        # v = np.linspace(0, np.pi, 100)
+        # Angles for polar coordinates:
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 100)
 
-        # # Cartesian coordinates from polar coordinates for ellipsoids:
-        # x0 = self.a * np.outer(np.cos(u), np.sin(v))
-        # y0 = self.b * np.outer(np.sin(u), np.sin(v))
-        # z0 = self.c * np.outer(np.ones_like(u), np.cos(v))
+        # Cartesian coordinates from polar coordinates for ellipsoids:
+        x0 = self.a * np.outer(np.cos(u), np.sin(v))
+        y0 = self.b * np.outer(np.sin(u), np.sin(v))
+        z0 = self.c * np.outer(np.ones_like(u), np.cos(v))
 
-        # x, y, z = self.rotate(x0, y0, z0, self.thetaz, self.thetay, self.thetax)
+        x, y, z = self.rotate(x0, y0, z0, self.thetaz, self.thetay, self.thetax)
 
-        # x = x + self.h
-        # y = y + self.k
-        # z = z + self.l
+        x = x + self.h
+        y = y + self.k
+        z = z + self.l
 
-        size = np.linspace(-10, 10, 100)
-        x, y = np.meshgrid(size, size)
-        self.funcgraph(ax, x, y)
-
-        # ax.contour3D(x, y, self.funcgraph(x,y), colors='red')
-
-        # for z in size:
-        #     ax.contour3D(x, y, self.func([x, y, z]), 0)
-
-        # for x in size:
-        #     for y in size:
-        #         for z in size:
-        #             if (self.func(np.array([x, y, z])) == 0):
-        #                 ax.plot(x, y, z, 'o', color='red')
-
-        # ax.plot_surface(x, y, z, color='red', alpha=0.75)
+        ax.plot_surface(x, y, z, color='red', alpha=0.75)
 
     def show_box(self, h, k, l): ##NOT YET UPDATED FOR 3D
         # PLOT CRYPTO RECTANGLE 
@@ -86,16 +71,13 @@ class Object:
         boxDist =  self.get_box_distance(initPoint, dir)
         if boxDist != -1 and (nextDist == -1 or boxDist <= nextDist):
             outPoint, outDist = initPoint + boxDist*dir, boxDist
+            isBoxEdge = 1
         else:
             outPoint, outDist = initPoint, 0
+            isBoxEdge = 0
         t = np.linspace(0, outDist, 100)
         ax.plot(initPoint[0] + t*dir[0], initPoint[1] + t*dir[1], initPoint[2] + t*dir[2], 'black')
-        return outPoint
-
-    # def rotate(self, x1, x2, x3, theta3):
-    #     sin = np.sin(theta3)
-    #     cos = np.cos(theta3)
-    #     return (x1*cos + x2*sin), (x2*cos - x1*sin), x3
+        return outPoint, isBoxEdge
 
     def rotate(self, x1, x2, x3, theta1, theta2, theta3):
         sin1 = np.sin(theta1)
@@ -106,10 +88,10 @@ class Object:
         cos3 = np.cos(theta3)
         return (x1*cos1*cos2 + x2*sin1*cos2 -x3*sin2, x1*(cos1*sin2*sin3 - sin1*cos3) + x2*(sin1*sin2*sin3 + cos1*cos3) + x3*cos2*sin3, x1*(cos1*sin2*cos3 + sin1*sin3) + x2*(sin1*sin2*cos3 - cos1*sin3) + x3*cos2*cos3)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
         return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -138,17 +120,18 @@ class Object:
             outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
 
         ##Find output intercept with box
-        if self.notLens:
+        if self.notLens and boxedge:
             if self.objType == "reflection":
-                outPoint = self.box_edge(intercept, outRefl, ax)
+                outPoint, isBoxEdge = self.box_edge(intercept, outRefl, ax)
             elif self.objType == "refraction":
-                outPoint2 = self.box_edge(intercept, outRefr, ax)
+                outPoint2, isBoxEdge = self.box_edge(intercept, outRefr, ax)
             else:
-                outPoint = self.box_edge(intercept, outRefl, ax)
-                outPoint2 = self.box_edge(intercept, outRefr, ax)
+                outPoint, isBoxEdge = self.box_edge(intercept, outRefl, ax)
+                outPoint2, isBoxEdge = self.box_edge(intercept, outRefr, ax)
         else:
             outPoint = intercept
             outPoint2 = intercept
+            isBoxEdge = 0
 
         outPoint = intercept
         outPoint2 = intercept
@@ -170,15 +153,16 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
-            return [[outPoint, outRefl, initDir, intensity]]
+            return [[outPoint, outRefl, initDir, intensity, isBoxEdge]]
         elif self.objType == "refraction":
-            return [[outPoint2, initDir, outRefr, intensity]]
+            return [[outPoint2, initDir, outRefr, intensity, isBoxEdge]]
         else:
-            Rs = np.linalg.norm((n1*cos - n2*sqrt(1-((n1 / n2)*sin)**2)) / (n1*cos + n2*sqrt(1-((n1 / n2)*sin)**2)))**2
-            Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*sin)**2) - n2*cos) / (n1*sqrt(1-((n1 / n2)*sin)**2) + n2*cos))**2
+            # Must adjust for 3 theta values
+            # Rs = np.linalg.norm((n1*np.cos(self.theta) - n2*sqrt(1-((n1 / n2)*np.sin(self.theta))**2)) / (n1*np.cos(self.theta) + n2*sqrt(1-((n1 / n2)*np.sin(self.theta))**2)))**2
+            # Rp = np.linalg.norm((n1*sqrt(1-((n1 / n2)*np.sin(self.theta))**2) - n2*np.cos(self.theta)) / (n1*sqrt(1-((n1 / n2)*np.sin(self.theta))**2) + n2*np.cos(self.theta)))**2
             R = 0.5*(Rs + Rp) #Unpolarized
             T = 1-R
-            return [[outPoint, outRefl, initDir, R*intensity],[outPoint2, initDir, outRefr, T*intensity]]
+            return [[outPoint, outRefl, initDir, R*intensity, isBoxEdge],[outPoint2, initDir, outRefr, T*intensity, isBoxEdge]]
 
 
 class Ellipsoid(Object):
@@ -237,22 +221,14 @@ class Ellipsoid(Object):
         else:
             return -1
 
-    def func(self, x):
-        sinx = np.sin(self.thetax)
-        cosx = np.cos(self.thetax)
-        siny = np.sin(self.thetay)
-        cosy = np.cos(self.thetay)
-        sinz = np.sin(self.thetaz)
-        cosz = np.cos(self.thetaz)
+    def func(self, input):
+        x, y, z = super().rotate((input[0] - self.h), (input[1] - self.k), (input[2]- self.l), self.thetaz, self.thetay, self.thetax)
+        return ((self.b**2)*(self.c**2) * (x**2) + (self.a**2)*(self.c**2) * (y**2) 
+        + (self.a**2)*(self.b**2) * (z**2) - (self.a**2)*(self.b**2)*(self.c**2))
 
-        return ((self.b**2)*(self.c**2) * ((((x[0]-self.h)*cosz + (x[1]-self.k)*sinz)*cosy - (x[2]-self.l)*siny)**2) 
-        + (self.a**2)*(self.c**2) * ((((x[1]-self.k)*cosz - (x[0]-self.h)*sinz)*cosx + (((x[0]-self.h)*cosz + (x[1]-self.k)*sinz)*siny + (x[2]-self.l)*cosy)*sinx)**2) 
-        + (self.a**2)*(self.b**2) * (((((x[0]-self.h)*cosz + (x[1]-self.k)*sinz)*siny + (x[2]-self.l)*cosy)*cosx - ((x[1]-self.k)*cosz - (x[0]-self.h)*sinz)*sinx)**2)
-        - (self.a**2)*(self.b**2)*(self.c**2))
-
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
         print('ELLIPSOID')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, ax, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
 class Polynomial2(Object):
@@ -322,43 +298,9 @@ class Polynomial2(Object):
         return (self.a * (x**2) + self.b * (y**2) + self.c * (z**2) + self.d * x * y + self.e * x * z + self.f * y * z
             + self.g * x + self.h1 * y + self.i * z + self.j)
 
-    def funcgraph(self, ax, x, y):
-        ax.contour3D(x, y, self.graph1(x,y), colors='red')
-        ax.contour3D(x, y, self.graph2(x,y), colors='red')
-
-    def graph1(self, x, y):
-        a_term = self.c
-        b_term = self.e*x + self.f*y + self.i
-        c_term = self.a*(x**2) + self.b*(y**2) + self.d*x*y + self.g*x + self.h1*y + self.j
-
-        if not(a_term == 0):
-            root = (b_term**2) - 4*a_term*c_term
-            print(root)
-            if root.any() >=0:
-                print((-b_term + np.sqrt(root))/(2*a_term))
-                return (-b_term + np.sqrt(root))/(2*a_term)
-            elif root.any() < 0:
-                print("Imaginary roots")
-        elif not(b_term == 0):
-            return c_term/b_term
-        else:
-            return 0
-
-    def graph2(self, x, y):
-        if not(a_term == 0):
-            root = (b_term**2) - 4*a_term*c_term
-            print(root)
-            if root.any() >=0:
-                print((-b_term - math.sqrt(root))/(2*a_term))
-                return (-b_term - math.sqrt(root))/(2*a_term)
-        elif not(b_term == 0):
-            return c_term/b_term
-        else:
-            return 0
-
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
         print('2ND DEGREE POLYNOMIAL IN 3D')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, ax, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
 class Polynomial3(Object):
@@ -487,73 +429,7 @@ class Polynomial3(Object):
             + self.k1 * (y**2) + self.l1 * (z**2) + self.m * x * y + self.n * x * z + self.o * y * z
             + self.p * x + self.q * y + self.r * z + self.s)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, ax, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
         print('3RD DEGREE POLYNOMIAL IN 3D')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, ax, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
-
-def test3D():
-    indivPlots = False
-    intensity = 1
-    n1 = 1.0003
-    n2 = 1.52
-    outputs = queue.Queue()
-    objs = []
-    nextPoint, nextRefl = np.array([0,-3,0.5]),np.array([0, 1, 0])
-
-    # Plotting shape
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
-
-    # objs.append(Ellipsoid(2,1,1,0,0,0,5,"reflection",math.pi/3,3,-math.pi/4))
-    objs.append(Polynomial2(2,1,0,3,5,-2,0,-1,3,2, 0,0,0.5,5,"reflection",0,0,0))
-    # objs.append(Polynomial3(2,1,0,3,5,-2,0,-1,3,2,4,-6,1,0,1,-5,3,3,-2, 0,0,0,5,"reflection",0,0,0))
-
-    for obj in objs:
-        if not(indivPlots):
-            obj.show_curve(ax)
-
-    outputs.put([nextPoint,nextRefl,n1,n2,intensity])
-    currInfo = outputs.get()
-    distSmall = -1
-    currObj = Object()
-    for obj in objs:
-        dist = obj.get_distance(currInfo[0],currInfo[1])
-        if distSmall == -1 and dist > 0:
-            distSmall = dist
-            currObj = obj
-        elif dist == -1:
-            distSmall = distSmall
-        else:
-            if dist < distSmall:
-                distSmall = dist
-                currObj = obj
-
-    if currObj.get_type() == "none":
-        ##Show rays not interacting with any curves here
-        t = np.linspace(0, 5, 500)
-        ax.plot(currInfo[0][0] + t*currInfo[1][0], currInfo[0][1] + t*currInfo[1][1], currInfo[0][2] + t*currInfo[1][2], 'orange')
-    else:
-        nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], ax, indivPlots)
-        for nextRay in nextRays:
-            if np.array_equal(nextRay[1], currInfo[1]) and np.array_equal(nextRay[2], currInfo[1]):
-                outputs.put([nextRay[0], nextRay[2], currInfo[3], currInfo[2], nextRay[2]])
-            else:
-                if not(np.array_equal(nextRay[1],currInfo[1])):
-                    outputs.put([nextRay[0],nextRay[1],currInfo[2],currInfo[3],nextRay[3]])
-                if not(np.array_equal(nextRay[2],currInfo[1])):
-                    if not(any(np.isnan(nextRay[2]))):
-                        outputs.put([nextRay[0],nextRay[2],currInfo[3],currInfo[2],nextRay[3]])
-    if not(indivPlots):
-        ax.set_aspect('equal')
-        ax.set_xlim(-10,10)
-        ax.set_ylim(-10,10)
-        ax.set_zlim(-10,10)
-        ##Show rays currently in the queue here
-        t = np.linspace(0, 5, 500)
-        for x in range(outputs.qsize()):
-            output = outputs.get()
-            plt.plot(output[0][0] + t*output[1][0], output[0][1] + t*output[1][1],output[0][2] + t*output[1][2],'green')
-        plt.show()
-
-test3D()
