@@ -80,7 +80,7 @@ def find_rays(outputs, objs, numbInteractions):
         if currObj.get_type() == "none":
             ##Show rays not interacting with any curves here
             t = np.linspace(0, 5, 500)
-            ax.plot(currInfo[0][0] + t*currInfo[1][0], currInfo[0][1] + t*currInfo[1][1], currInfo[0][2] + t*currInfo[1][2], 'orange')
+            ax.plot(currInfo[0][0] + t*currInfo[1][0], currInfo[0][1] + t*currInfo[1][1], currInfo[0][2] + t*currInfo[1][2], 'green')
             break
         else:
             nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], boxedge, ax, indivPlots)

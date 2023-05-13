@@ -129,26 +129,6 @@ class Object:
             plt.show()
 
         if self.objType == "reflection":
-                        # print('{0:.16f}'.format(outPoint[1]))
-            #Add in rounding?
-            # testThis = np.array(outPoint, dtype=np.dtype(decimal.Decimal))
-            # testThis2 = np.array(outRefl, dtype=np.dtype(decimal.Decimal))
-
-            # testThis3 = np.array([round(testThis[0], 11), round(testThis[1], 11)])
-            # testThis4 = np.array([round(testThis2[0], 11), round(testThis2[1], 11)])
-            # return [[testThis3, testThis4, initDir, intensity]]
-
-            (whole1, deci1) = math.modf(outPoint[0])
-            deci1 = round(deci1, 11)
-            (whole2, deci2) = math.modf(outPoint[1])
-            deci2 = round(deci2, 11)
-            (whole3, deci3) = math.modf(outRefl[0])
-            deci3 = round(deci3, 11)
-            (whole4, deci4) = math.modf(outRefl[1])
-            deci4 = round(deci4, 11)
-            # return [[np.array([whole1+deci1, whole2+deci2]), np.array([whole3+deci3, whole4+deci4]), initDir, intensity, isBoxEdge]]
-            # return [[np.around(outPoint, 11), np.around(outRefl, 11), initDir, intensity, isBoxEdge]]
-
             return [[outPoint, outRefl, initDir, intensity, isBoxEdge]]
         elif self.objType == "refraction":
             return [[outPoint2, initDir, outRefr, intensity, isBoxEdge]]

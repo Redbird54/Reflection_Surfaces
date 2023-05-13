@@ -55,7 +55,8 @@ def encrypt (msg1):
         'authTag': binascii.hexlify(encryptedMsg[2]),
         'ciphertextPubKey': hex(encryptedMsg[3].x) + hex(encryptedMsg[3].y % 2)[2:]
     }
-    print("encrypted msg:", encryptedMsgObj)
+    print("encrypted msg:", encryptedMsgObj['ciphertext'])
+    print("ciphertest Public Key:", encryptedMsgObj['ciphertextPubKey'])
 
     decryptedMsg = decrypt_ECC(encryptedMsg, privKey)
     # print("decrypted msg:", decryptedMsg)
