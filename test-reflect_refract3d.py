@@ -139,4 +139,7 @@ if not(indivPlots):
     ax.set_ylim(-10,10)
     ax.set_zlim(-10,10)
     ax.set_aspect('equal')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
     plt.show()

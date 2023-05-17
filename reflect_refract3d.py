@@ -143,6 +143,9 @@ class Object:
             ax.set_xlim(self.h-10,self.h + 10)
             ax.set_ylim(self.k-10,self.k + 10)
             ax.set_zlim(self.l-10,self.l + 10)
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
             t3 = np.linspace(0, self.boxsize, 500)
             if self.notLens:
                 ax.plot(intercept[0] + t3*normDir[0], intercept[1] + t3*normDir[1], intercept[2] + t3*normDir[2], 'orange')

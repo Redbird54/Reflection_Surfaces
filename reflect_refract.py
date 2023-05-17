@@ -118,6 +118,8 @@ class Object:
             plt.xlim(self.h-10, self.h+10)
             plt.ylim(self.k-10, self.k+10)
             plt.gca().set_aspect('equal', adjustable='box')
+            plt.xlabel('x')
+            plt.ylabel('y')
             self.show_curve()
             t3 = np.linspace(0, self.boxsize, 500)
             if self.notLens:
@@ -593,6 +595,8 @@ class Lens(ParentLens):
             plt.xlim(self.h-20, self.h+20)
             plt.ylim(self.k-20, self.k+20)
             plt.gca().set_aspect('equal', adjustable='box')
+            plt.xlabel('x')
+            plt.ylabel('y')
             plt.show()
 
         return [[nextPoint, initDir, nextRefr, intensity, isBoxEdge]]
@@ -681,6 +685,8 @@ class Linear_Lens(ParentLens):
             plt.xlim(self.h-20, self.h+20)
             plt.ylim(self.k-20, self.k+20)
             plt.gca().set_aspect('equal', adjustable='box')
+            plt.xlabel('x')
+            plt.ylabel('y')
             plt.show()
 
         return [[nextPoint, initDir, nextRefr, intensity, isBoxEdge]]

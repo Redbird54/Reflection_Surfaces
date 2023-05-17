@@ -142,4 +142,6 @@ if not(indivPlots):
     plt.xlim(-30, 30)
     plt.ylim(-30, 30)
     plt.gca().set_aspect('equal', adjustable='box')
+    plt.xlabel('x')
+    plt.ylabel('y')
     plt.show()
