@@ -1,6 +1,6 @@
 from tinyec.ec import SubGroup, Curve
 from Crypto.Cipher import AES
-import hashlib, secrets, binascii
+import hashlib, secrets, binascii, struct
 
 def encrypt_AES_GCM(msg, secretKey):
     aesCipher = AES.new(secretKey, AES.MODE_GCM)
@@ -55,9 +55,10 @@ def encrypt (msg1):
         'authTag': binascii.hexlify(encryptedMsg[2]),
         'ciphertextPubKey': hex(encryptedMsg[3].x) + hex(encryptedMsg[3].y % 2)[2:]
     }
-    print("encrypted msg:", encryptedMsgObj['ciphertext'])
-    print("ciphertest Public Key:", encryptedMsgObj['ciphertextPubKey'])
+
+    print("Encrypted msg:", float(int(str(encryptedMsgObj['ciphertext'])[2:-1], 16)))
 
     decryptedMsg = decrypt_ECC(encryptedMsg, privKey)
-    # print("decrypted msg:", decryptedMsg)
+    ##Maybe try converting output hexadecimal into float. This way it's not obvious the number has been encrypted
+    print("Decrypted msg:", str(decryptedMsg)[2:-1])
     return decryptedMsg
