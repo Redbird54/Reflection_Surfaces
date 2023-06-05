@@ -114,9 +114,12 @@ if actionCount > 0:
         inRay = -outRay2
     else:
         inRay = -outRay
-    test1 = np.array([float(encrypt(str(outPoint[0]), "x Position")), float(encrypt(str(outPoint[1]), "y Position"))])
-    test2 = np.array([float(encrypt(str(inRay[0]), "x Direction")), float(encrypt(str(inRay[1]), "y Direction"))])
-    test3 = float(encrypt(str(mag), "Ray Magnitude"))
+    encryptedMsgs = [encrypt(str(outPoint[0]), "x Position"), encrypt(str(outPoint[1]), "y Position"),
+        encrypt(str(inRay[0]), "x Direction"),encrypt(str(inRay[1]), "y Direction"), encrypt(str(mag), "Ray Magnitude")]
+
+    test1 = np.array([decrypt(encryptedMsgs[0]), decrypt(encryptedMsgs[1])])
+    test2 = np.array([decrypt(encryptedMsgs[2]), decrypt(encryptedMsgs[3])])
+    test3 = decrypt(encryptedMsgs[4])
 
     reverse.put([test1, test2, n1, n2, intensity])
     if actionCount > 1:
