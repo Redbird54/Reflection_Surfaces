@@ -234,6 +234,156 @@ class Ellipsoid(Object):
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
+class Sphere(Ellipsoid):
+    def __init__(self, r, h, k, l, boxsize, outputType, notLens=True):
+        super().__init__(r, r, r, h, k, l, boxsize, outputType)
+        
+    def get_type(self):
+        return super().get_type()
+
+    def get_center(self):
+        return super().get_center()
+
+    def get_distance(self, initPoint, initDir):
+        return super().get_distance(initPoint, initDir)
+
+    def func(self, input):
+        return super().func(input)
+
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
+        print('SPHERE')
+        return super(Ellipsoid, self).output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
+
+
+class Hyperboloid(Object):
+    def __init__(self, a, b, c, h, k, l, boxsize, outputType, thetax=0, thetay=0, thetaz=0, notLens=True):
+        if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
+            self.objType = outputType
+        else:
+            raise Exception("Type must be \"reflection\", \"refraction\"") #, or \"both\"")
+        if a == 0 and b == 0 and c == 0:
+            raise Exception("a, b, and c cannot all be 0")
+        self.a = a
+        self.b = b
+        self.c = c
+        self.h = h
+        self.k = k
+        self.l = l
+        self.boxsize = boxsize
+        self.thetax = thetax
+        self.thetay = thetay
+        self.thetaz = thetaz
+        self.notLens = notLens
+
+    def get_type(self):
+        return self.objType
+
+    def get_center(self):
+        return self.h, self.k, self.l
+
+    def get_distance(self, initPoint, initDir):
+        a = self.a
+        b = self.b
+        c = self.c
+
+        x, y, z = super().rotate((initPoint[0] - self.h), (initPoint[1] - self.k), (initPoint[2]- self.l), self.thetaz, self.thetay, self.thetax)
+        dx, dy, dz = super().rotate(initDir[0], initDir[1], initDir[2], self.thetaz, self.thetay, self.thetax)
+
+
+        ##Find where ray and curve intersect
+        a_term = (b**2)*(c**2)*(dx**2) + (a**2)*(c**2)*(dy**2) - (a**2)*(b**2)*(dz**2)
+        b_term = (b**2)*(c**2)*(2*x*dx) + (a**2)*(c**2)*(2*y*dy) - (a**2)*(b**2)*(2*z*dz)
+        c_term = (b**2)*(c**2)*(x**2) + (a**2)*(c**2)*(y**2) - (a**2)*(b**2)*(z**2) - (a**2)*(b**2)*(c**2)
+        if b_term**2 - 4 * a_term * c_term < 0:
+            return -1
+        if a_term == 0:
+            return (-c_term)/b_term
+        dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
+
+        dists = dists[dists > 1e-12]
+        goodDists = np.array([])
+        for myDist in dists:
+            intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1], initPoint[2] + myDist*initDir[2]])
+            if not(any(abs(intercept - np.array([self.h, self.k, self.l])) > (self.boxsize * 1.5))):
+                goodDists = np.append(goodDists, myDist)
+        if len(goodDists) > 0:
+            return min(goodDists)
+        else:
+            return -1
+
+    def func(self, input):
+        x, y, z = super().rotate((input[0] - self.h), (input[1] - self.k), (input[2]- self.l), self.thetaz, self.thetay, self.thetax)
+        return ((self.b**2)*(self.c**2) * (x**2) + (self.a**2)*(self.c**2) * (y**2) 
+        - (self.a**2)*(self.b**2) * (z**2) - (self.a**2)*(self.b**2)*(self.c**2))
+
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
+        print('HYPERBOLOID')
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
+
+
+class EllipticalParaboloid(Object):
+    def __init__(self, a, b, h, k, l, boxsize, outputType, thetax=0, thetay=0, thetaz=0, notLens=True):
+        if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
+            self.objType = outputType
+        else:
+            raise Exception("Type must be \"reflection\", \"refraction\"") #, or \"both\"")
+        if a == 0 and b == 0 and c == 0:
+            raise Exception("a, b, and c cannot all be 0")
+        self.a = a
+        self.b = b
+        self.h = h
+        self.k = k
+        self.l = l
+        self.boxsize = boxsize
+        self.thetax = thetax
+        self.thetay = thetay
+        self.thetaz = thetaz
+        self.notLens = notLens
+
+    def get_type(self):
+        return self.objType
+
+    def get_center(self):
+        return self.h, self.k, self.l
+
+    def get_distance(self, initPoint, initDir):
+        a = self.a
+        b = self.b
+
+        x, y, z = super().rotate((initPoint[0] - self.h), (initPoint[1] - self.k), (initPoint[2]- self.l), self.thetaz, self.thetay, self.thetax)
+        dx, dy, dz = super().rotate(initDir[0], initDir[1], initDir[2], self.thetaz, self.thetay, self.thetax)
+
+
+        ##Find where ray and curve intersect
+        a_term = (b**2)*(dx**2) + (a**2)*(dy**2) - (a**2)*(b**2)*(dz**2)
+        b_term = (b**2)*(2*x*dx) + (a**2)*(2*y*dy) - (a**2)*(b**2)*(2*z*dz)
+        c_term = (b**2)*(x**2) + (a**2)*(y**2) - (a**2)*(b**2)*(z**2)
+        if b_term**2 - 4 * a_term * c_term < 0:
+            return -1
+        if a_term == 0:
+            return (-c_term)/b_term
+        dists = np.array([(-b_term + np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term), (-b_term - np.sqrt(b_term**2 - 4 * a_term * c_term)) / (2 * a_term)])
+
+        dists = dists[dists > 1e-12]
+        goodDists = np.array([])
+        for myDist in dists:
+            intercept = np.array([initPoint[0] + myDist*initDir[0], initPoint[1] + myDist*initDir[1], initPoint[2] + myDist*initDir[2]])
+            if not(any(abs(intercept - np.array([self.h, self.k, self.l])) > (self.boxsize * 1.5))):
+                goodDists = np.append(goodDists, myDist)
+        if len(goodDists) > 0:
+            return min(goodDists)
+        else:
+            return -1
+
+    def func(self, input):
+        x, y, z = super().rotate((input[0] - self.h), (input[1] - self.k), (input[2]- self.l), self.thetaz, self.thetay, self.thetax)
+        return ((self.b**2) * (x**2) + (self.a**2) * (y**2) - (self.a**2)*(self.b**2) * (z**2))
+
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
+        print('ELLIPTIC PARABOLOID')
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
+
+
 class Polynomial2(Object):
     def __init__(self, a, b, c, d, e, f, g, h1, i, j, h, k, l, boxsize, outputType, thetax=0, thetay=0, thetaz=0, notLens=True):
         if outputType == "reflection" or outputType == "refraction": # or outputType == "both":
