@@ -12,3 +12,5 @@ Additionally, the 3D model can be run as well from the file `test-reflect_refrac
 ```bash
 python3 test-reflect_refract3d.py
 ```
+
+The output of the forward direction of the physical model is then encrypted using `encrypt_ecc.py`. Here, the output values are encrypted (and decrypted) using an AES algorithm. This, in turn, requires a shared key for both encryption and decryption steps, which is generated using an ECC algorithm. Once the values have been decrypted they are returned to the physical model, which runs the interactions in the opposite direction to find the initial point.s 
