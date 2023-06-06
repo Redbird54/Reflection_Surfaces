@@ -9,6 +9,7 @@ interactions = 12
 boxsize = 5
 boxedge = False
 globalbox = 100
+boxshow = False
 intensity = 1
 
 ##Setting the medium 1 to air, medium 2 to glass
@@ -35,13 +36,14 @@ initialObjs.append(Parabola(1,-15,13,boxsize,"reflection",5*math.pi/3))
 # initialObjs.append(Lens(-15,13,7,10,5,boxsize,9*math.pi/20))
 # initialObjs.append(Linear_Lens(-15,13,4,boxsize,18*math.pi/20))
 
+
 def get_valid_objs(initialObjs, objs, startPoint):
     for obj in initialObjs:
         if not(objs):
             if any(abs(startPoint-obj.get_center()) > (boxsize*1.5)) and all(np.abs(obj.get_center())+(boxsize*1.5) <= globalbox):
                 objs.append(obj)
                 if not(indivPlots):
-                    obj.show_curve()
+                    obj.show_curve(boxshow)
         else:
             if any(abs(startPoint-obj.get_center()) > (boxsize*1.5)) and all(np.abs(obj.get_center())+(boxsize*1.5) <= globalbox):
                 notOverlap = True
@@ -52,7 +54,7 @@ def get_valid_objs(initialObjs, objs, startPoint):
                 if notOverlap:
                     objs.append(obj)
                     if not(indivPlots):
-                        obj.show_curve()
+                        obj.show_curve(boxshow)
     return objs
 
 def find_rays(outputs, objs, numbInteractions):
@@ -90,7 +92,7 @@ def find_rays(outputs, objs, numbInteractions):
             outputs.put(currInfo)
             break
         else:
-            nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], boxedge, indivPlots)
+            nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], boxedge, indivPlots, boxshow)
             for nextRay in nextRays:
                 outPoint = nextRay[0]
                 outRay = currInfo[1]
@@ -154,5 +156,10 @@ if not(indivPlots):
     plt.ylabel('y')
     lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
     labels = ['Curve Objects', 'Rays', 'Output Ray Forward Direction', 'Final Ray Reverse Direction']
+    if boxshow:
+        lines.append(Line2D([0], [0], color='blue', linewidth=3))
+        lines.append(Line2D([0], [0], color='brown', linewidth=3))
+        labels.append('Inner Box')
+        labels.append('Outer Box')
     plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
     plt.show()

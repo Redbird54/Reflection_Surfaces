@@ -13,15 +13,16 @@ class Object:
     def get_type(self):
         return "none"
 
-    def show_curve(self):
+    def show_curve(self, boxshow):
         x = np.linspace(self.h - self.boxsize * 1.5, self.h + self.boxsize * 1.5, 1000)
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
 
-        # self.show_box(self.h, self.k)
-
         ##Equation of curve
         plt.contour(hypx, hypy, self.func([hypx, hypy]), [0], colors='red')
+
+        if boxshow:
+            self.show_box(self.h, self.k)
 
     def show_box(self, h, k):
         # PLOT CRYPTO RECTANGLE 
@@ -71,7 +72,7 @@ class Object:
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -121,7 +122,7 @@ class Object:
             plt.gca().set_aspect('equal', adjustable='box')
             plt.xlabel('x')
             plt.ylabel('y')
-            self.show_curve()
+            self.show_curve(boxshow)
             t3 = np.linspace(0, self.boxsize, 500)
             if self.notLens:
                 plt.plot(intercept[0] + t3*normDir[0], intercept[1] + t3*normDir[1], 'orange')
@@ -131,6 +132,11 @@ class Object:
                     plt.plot(outPoint2[0] + t3*outRefr[0], outPoint2[1] + t3*outRefr[1], 'green')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
             labels = ['Curve Object', 'Input Ray', 'Output', 'Normal']
+            if boxshow:
+                lines.append(Line2D([0], [0], color='blue', linewidth=3))
+                lines.append(Line2D([0], [0], color='brown', linewidth=3))
+                labels.append('Inner Box')
+                labels.append('Outer Box')
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
@@ -196,9 +202,9 @@ class Parabola(Object):
         x, y = super().rotate((input[0] - self.h), (input[1] - self.k), self.theta)
         return (self.a * (x**2) - y)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('PARABOLA')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
 class Linear(Object):
@@ -243,9 +249,9 @@ class Linear(Object):
     def func(self, input):
         return (self.surfDir[0] * (self.surfPoint[1] - input[1]) + self.surfDir[1] * (input[0] - self.surfPoint[0]))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('LINEAR')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
 class Hyperbola(Object):
@@ -302,9 +308,9 @@ class Hyperbola(Object):
             - (self.a**2) * (y**2) 
             - ((self.a**2) * (self.b**2)))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('HYPERBOLA')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
 class Ellipse(Object):
@@ -361,9 +367,9 @@ class Ellipse(Object):
             + (self.a**2) * (y**2) 
             - ((self.a**2) * (self.b**2)))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('ELLIPSE')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
 #Convex/concave lens using two curved surfaces
@@ -487,7 +493,7 @@ class Lens(ParentLens):
     def get_center(self):
         return self.h, self.k
 
-    def show_curve(self):
+    def show_curve(self, boxshow):
         # super().show_box(self.h, self.k)
         if self.height > 0:
             t = np.linspace(self.theta + math.pi - self.theta1, self.theta + math.pi + self.theta1, 100)
@@ -559,7 +565,7 @@ class Lens(ParentLens):
         x, y = super().rotate((input[0] - self.center[0]), (input[1] - self.center[1]), self.theta)
         return (x**2 + y**2 - r**2)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('CIRCULAR LENS')
 
         intercept = initPoint + dist*initDir
@@ -594,7 +600,7 @@ class Lens(ParentLens):
             t3 = np.linspace(-15, 6, 500)
             plt.plot(self.point1[0] + t3*self.slope[0], self.point1[1] + t3*self.slope[1], 'orange')
             plt.plot(self.point2[0] + t3*self.slope[0], self.point2[1] + t3*self.slope[1], 'orange')
-            self.show_curve()
+            self.show_curve(boxshow)
             plt.grid(color='lightgray', linestyle='--')
             plt.xlim(self.h-20, self.h+20)
             plt.ylim(self.k-20, self.k+20)
@@ -603,6 +609,11 @@ class Lens(ParentLens):
             plt.ylabel('y')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
             labels = ['Lens', 'Input/Intermediate Rays', 'Output', 'Center Line']
+            if boxshow:
+                lines.append(Line2D([0], [0], color='blue', linewidth=3))
+                lines.append(Line2D([0], [0], color='brown', linewidth=3))
+                labels.append('Inner Box')
+                labels.append('Outer Box')
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
@@ -636,7 +647,7 @@ class Linear_Lens(ParentLens):
     def get_center(self):
         return self.h, self.k
 
-    def show_curve(self):
+    def show_curve(self, boxshow):
         x = np.linspace(self.h - self.boxsize * 1.5, self.h + self.boxsize * 1.5, 1000)
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
@@ -661,7 +672,7 @@ class Linear_Lens(ParentLens):
     def func(self, center, input):
         return (self.slope[0] * (center[1] - input[1]) + self.slope[1] * (input[0] - center[0]))
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('LINEAR LENS')
 
         intercept = initPoint + dist*initDir
@@ -687,7 +698,7 @@ class Linear_Lens(ParentLens):
         if isPlot:
             t = np.linspace(0, 10, 500)
             plt.plot(nextPoint[0] + t*nextRefr[0], nextPoint[1] + t*nextRefr[1], 'green')
-            self.show_curve()
+            self.show_curve(boxshow)
             plt.grid(color='lightgray', linestyle='--')
             plt.xlim(self.h-20, self.h+20)
             plt.ylim(self.k-20, self.k+20)
@@ -696,6 +707,11 @@ class Linear_Lens(ParentLens):
             plt.ylabel('y')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green']]
             labels = ['Lens', 'Input/Intermediate Rays', 'Output']
+            if boxshow:
+                lines.append(Line2D([0], [0], color='blue', linewidth=3))
+                lines.append(Line2D([0], [0], color='brown', linewidth=3))
+                labels.append('Inner Box')
+                labels.append('Outer Box')
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 

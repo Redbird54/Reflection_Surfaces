@@ -13,15 +13,16 @@ class Object:
     def get_type(self):
         return "none"
 
-    def show_curve(self):
+    def show_curve(self, boxshow):
         x = np.linspace(self.h - self.boxsize * 1.5, self.h + self.boxsize * 1.5, 1000)
         y = np.linspace(self.k - self.boxsize * 1.5, self.k + self.boxsize * 1.5, 1000)
         hypx, hypy = np.meshgrid(x, y)
 
-        # self.show_box(self.h, self.k)
-
         ##Equation of curve
         plt.contour(hypx, hypy, self.func([hypx, hypy]), [0], colors='red')
+
+        if boxshow:
+            self.show_box(self.h, self.k)
 
     def show_box(self, h, k):
         # PLOT CRYPTO RECTANGLE 
@@ -71,7 +72,7 @@ class Object:
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
         return [[initPoint, initDir, initDir, intensity]]
 
-    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output_procedure(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         mu = n1 / n2
 
         ##Variable for plotting & incident ray 
@@ -121,7 +122,7 @@ class Object:
             plt.gca().set_aspect('equal', adjustable='box')
             plt.xlabel('x')
             plt.ylabel('y')
-            self.show_curve()
+            self.show_curve(boxshow)
             t3 = np.linspace(0, self.boxsize, 500)
             if self.notLens:
                 plt.plot(intercept[0] + t3*normDir[0], intercept[1] + t3*normDir[1], 'orange')
@@ -131,6 +132,11 @@ class Object:
                     plt.plot(outPoint2[0] + t3*outRefr[0], outPoint2[1] + t3*outRefr[1], 'green')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
             labels = ['Curve Object', 'Input Ray', 'Output', 'Normal']
+            if boxshow:
+                lines.append(Line2D([0], [0], color='blue', linewidth=3))
+                lines.append(Line2D([0], [0], color='brown', linewidth=3))
+                labels.append('Inner Box')
+                labels.append('Outer Box')
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
@@ -244,9 +250,9 @@ class Polynomial3(Object):
         return (self.a * (x**3) + self.b * (y**3) + self.c * (x**2) * y + self.d * x * (y**2) 
             + self.e * (x**2) + self.f * (y**2) + self.g * x * y + self.h1 * x + self.i * y + self.j)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('3RD DEGREE POLYNOMIAL')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 class Polynomial2(Object):
     def __init__(self, a, b, c, d, e, f, h, k, boxsize, outputType, theta=0):
@@ -304,6 +310,6 @@ class Polynomial2(Object):
         return (self.a * (x**2) + self.b * (y**2) + self.c * x * y + self.d * x 
             + self.e * y + self.f)
 
-    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot):
+    def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
         print('2ND DEGREE POLYNOMIAL')
-        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot)
+        return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
