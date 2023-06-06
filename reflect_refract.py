@@ -131,7 +131,7 @@ class Object:
                     plt.plot(outPoint2[0] + t3*outRefr[0], outPoint2[1] + t3*outRefr[1], 'green')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
             labels = ['Curve Object', 'Input Ray', 'Output', 'Normal']
-            plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
+            plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
         if self.objType == "reflection":
@@ -603,7 +603,7 @@ class Lens(ParentLens):
             plt.ylabel('y')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
             labels = ['Lens', 'Input/Intermediate Rays', 'Output', 'Center Line']
-            plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
+            plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
         return [[nextPoint, initDir, nextRefr, intensity, isBoxEdge]]
@@ -696,7 +696,7 @@ class Linear_Lens(ParentLens):
             plt.ylabel('y')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green']]
             labels = ['Lens', 'Input/Intermediate Rays', 'Output']
-            plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
+            plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
         return [[nextPoint, initDir, nextRefr, intensity, isBoxEdge]]
