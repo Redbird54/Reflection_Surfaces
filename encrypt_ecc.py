@@ -1,6 +1,7 @@
 from tinyec.ec import SubGroup, Curve
 from Crypto.Cipher import AES
 import hashlib, secrets, binascii, struct
+import sys
 
 def ecc_point_to_256_bit_key(point):
     sha = hashlib.sha256(int.to_bytes(point.x, 32, 'big'))
@@ -41,3 +42,10 @@ def decrypt (encryptedMsg):
 
     print("Decrypted msg:", str(decryptedMsg)[2:-1])
     return float(decryptedMsg)
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        raise Exception("Must have 2 arguments")
+        sys.exit()
+    msg = encrypt(sys.argv[1], str(sys.argv[2]))
+    output = decrypt(msg)

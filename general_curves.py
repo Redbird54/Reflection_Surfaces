@@ -205,8 +205,8 @@ class Polynomial3(Object):
             T = self.cuberoot(R, -math.sqrt(abs(rootTest)))
 
         lambda1 = complex(S + T - (B / (3 * A)))
-        lambda2 = complex(-(S + T)/2 + (S - T) * (1j * math.sqrt(3)) / 2 -(B / (3 * A)))
-        lambda3 = complex(-(S + T)/2 - (S - T) * (1j * math.sqrt(3)) / 2 -(B / (3 * A)))
+        lambda2 = complex(-(S + T)/2 + (S - T) * (1j * math.sqrt(3)) / 2 - (B / (3 * A)))
+        lambda3 = complex(-(S + T)/2 - (S - T) * (1j * math.sqrt(3)) / 2 - (B / (3 * A)))
 
         if abs(lambda1.imag) <= 1e-11:
             lambda1 = lambda1.real
