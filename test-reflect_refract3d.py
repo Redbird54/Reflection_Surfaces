@@ -118,20 +118,21 @@ if actionCount > 0:
     encryptedMsgs = [encrypt(str(outPoint[0]), "x Position", globalbox), encrypt(str(outPoint[1]), "y Position", globalbox), 
         encrypt(str(outPoint[2]), "z Position", globalbox), encrypt(str(inRay[0]), "x Direction", globalbox), 
         encrypt(str(inRay[1]), "y Direction", globalbox), encrypt(str(inRay[2]), "z Direction", globalbox),
-        encrypt(str(mag), "Ray Magnitude", globalbox)]
+        encrypt(str(mag), "Ray Magnitude", globalbox), encrypt(str(actionCount), "Interaction Count", globalbox)]
     
-    test1 = np.array([decrypt(encryptedMsgs[0]), decrypt(encryptedMsgs[1]), decrypt(encryptedMsgs[2])])
-    test2 = np.array([decrypt(encryptedMsgs[3]), decrypt(encryptedMsgs[4]), decrypt(encryptedMsgs[5])])
-    test3 = decrypt(encryptedMsgs[6])
+    decryptPoint = np.array([decrypt(encryptedMsgs[0]), decrypt(encryptedMsgs[1]), decrypt(encryptedMsgs[2])])
+    decryptDirection = np.array([decrypt(encryptedMsgs[3]), decrypt(encryptedMsgs[4]), decrypt(encryptedMsgs[5])])
+    decryptMag = decrypt(encryptedMsgs[6])
+    decryptInteractions = int(decrypt(encryptedMsgs[5]))
 
-    reverse.put([test1, test2, n1, n2, intensity])
+    reverse.put([decryptPoint, decryptDirection, n1, n2, intensity])
     if actionCount > 1:
-        tests, testPoint, testRay, testRay2, testMag, testFlag, testCount = find_rays(reverse, objs, actionCount)
+        tests, testPoint, testRay, testRay2, testMag, testFlag, testCount = find_rays(reverse, objs, decryptInteractions)
     else: 
-        testPoint = test1
-        testRay2 = test2
-    t = np.linspace(0, test3, 500)
-    print(np.array([testPoint[0] + test3*testRay2[0], testPoint[1] + test3*testRay2[1], testPoint[2] + test3*testRay2[2]]))
+        testPoint = decryptPoint
+        testRay2 = decryptDirection
+    t = np.linspace(0, decryptMag, 500)
+    print(np.array([testPoint[0] + decryptMag*testRay2[0], testPoint[1] + decryptMag*testRay2[1], testPoint[2] + decryptMag*testRay2[2]]))
     # plt.plot(testPoint[0] + t*testRay2[0], testPoint[1] + t*testRay2[1], 'orange')
     ax.plot(testPoint[0] + t*testRay2[0], testPoint[1] + t*testRay2[1], testPoint[2] + t*testRay2[2], 'orange')
 else:
