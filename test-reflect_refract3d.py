@@ -146,4 +146,7 @@ if not(indivPlots):
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
+    lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
+    labels = ['Curve Objects', 'Rays', 'Output Ray Forward Direction', 'Final Ray Reverse Direction']
+    ax.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
     plt.show()

@@ -147,4 +147,7 @@ if not(indivPlots):
     plt.gca().set_aspect('equal', adjustable='box')
     plt.xlabel('x')
     plt.ylabel('y')
+    lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
+    labels = ['Curve Objects', 'Rays', 'Output Ray Forward Direction', 'Final Ray Reverse Direction']
+    plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
     plt.show()
