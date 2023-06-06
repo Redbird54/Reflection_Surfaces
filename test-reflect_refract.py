@@ -4,7 +4,7 @@ from encrypt_ecc import *
 import queue
 
 ##Hyperparameters for model
-indivPlots = True
+indivPlots = False
 interactions = 12
 boxsize = 5
 boxedge = False
@@ -26,12 +26,12 @@ if interactions < 1:
 startPoint, startDir = np.array([-5,-20]),np.array([1,4])
 # initialObjs.append(Polynomial3(5, 2, 3, -1, 7, 2, 0, -4, 1, -2, 0, 0,boxsize,"reflection"))
 # initialObjs.append(Polynomial2(5, 3, 7, 5, -1, 0, 0, 0,boxsize,"reflection"))
-# initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
-# initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
-# initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
-# initialObjs.append(Parabola(1,-15,13,boxsize,"reflection",5*math.pi/3))
+initialObjs.append(Ellipse(1,2,1,8,boxsize,"reflection",math.pi/3))
+initialObjs.append(Hyperbola(3,2,-15,-3,boxsize,"reflection",5*math.pi/6))
+initialObjs.append(Linear(4,-9,4,3,boxsize,"reflection"))
+initialObjs.append(Parabola(1,-15,13,boxsize,"reflection",5*math.pi/3))
 # initialObjs.append(Polynomial3(5, 2, 3, -1, 7, 2, 0, -4, 1, -2, 4, -9,boxsize,"reflection", math.pi/2))
-initialObjs.append(Parabola(1,2,8,boxsize,"reflection",-math.pi/6))
+# initialObjs.append(Parabola(1,2,8,boxsize,"reflection",-math.pi/6))
 # initialObjs.append(Lens(-15,13,7,10,5,boxsize,9*math.pi/20))
 # initialObjs.append(Linear_Lens(-15,13,4,boxsize,18*math.pi/20))
 
@@ -154,5 +154,5 @@ if not(indivPlots):
     plt.ylabel('y')
     lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
     labels = ['Curve Objects', 'Rays', 'Output Ray Forward Direction', 'Final Ray Reverse Direction']
-    plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
+    plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
     plt.show()
