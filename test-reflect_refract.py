@@ -8,6 +8,7 @@ indivPlots = False
 interactions = 12
 boxsize = 5
 boxedge = False
+globalbox = 100
 intensity = 1
 
 ##Setting the medium 1 to air, medium 2 to glass
@@ -37,12 +38,12 @@ initialObjs.append(Parabola(1,-15,13,boxsize,"reflection",5*math.pi/3))
 def get_valid_objs(initialObjs, objs, startPoint):
     for obj in initialObjs:
         if not(objs):
-            if any(abs(startPoint-obj.get_center()) > (boxsize*1.5)):
+            if any(abs(startPoint-obj.get_center()) > (boxsize*1.5)) and all(np.abs(obj.get_center())+(boxsize*1.5) <= globalbox):
                 objs.append(obj)
                 if not(indivPlots):
                     obj.show_curve()
         else:
-            if any(abs(startPoint-obj.get_center()) > (boxsize*1.5)):
+            if any(abs(startPoint-obj.get_center()) > (boxsize*1.5)) and all(np.abs(obj.get_center())+(boxsize*1.5) <= globalbox):
                 notOverlap = True
                 for x in range(len(objs)):
                     centerDiff = [abs(a - b) >= (boxsize*3) for a, b in zip(obj.get_center(), objs[x].get_center())]
@@ -81,9 +82,12 @@ def find_rays(outputs, objs, numbInteractions):
         if x == 0:
             initMag = distSmall
         if currObj.get_type() == "none":
-            ##Show rays not interacting with any curves here
+            ##Show rays not interacting with any curves here. Only used when both reflect and refract in single object
             # t = np.linspace(0, 30, 500)
-            # plt.plot(currInfo[0][0] + t*currInfo[1][0], currInfo[0][1] + t*currInfo[1][1], 'orange')
+            # plt.plot(currInfo[0][0] + t*currInfo[1][0], currInfo[0][1] + t*currInfo[1][1], 'green')
+
+            ##When reflect and refract are exclusive, put current info back to print final ray at end
+            outputs.put(currInfo)
             break
         else:
             nextRays = currObj.output(distSmall, currInfo[0], currInfo[1], currInfo[2], currInfo[3], currInfo[4], boxedge, indivPlots)
@@ -114,8 +118,9 @@ if actionCount > 0:
         inRay = -outRay2
     else:
         inRay = -outRay
-    encryptedMsgs = [encrypt(str(outPoint[0]), "x Position"), encrypt(str(outPoint[1]), "y Position"),
-        encrypt(str(inRay[0]), "x Direction"),encrypt(str(inRay[1]), "y Direction"), encrypt(str(mag), "Ray Magnitude")]
+    encryptedMsgs = [encrypt(str(outPoint[0]), "x Position", globalbox), encrypt(str(outPoint[1]), "y Position", globalbox),
+        encrypt(str(inRay[0]), "x Direction", globalbox), encrypt(str(inRay[1]), "y Direction", globalbox), 
+        encrypt(str(mag), "Ray Magnitude", globalbox)]
 
     test1 = np.array([decrypt(encryptedMsgs[0]), decrypt(encryptedMsgs[1])])
     test2 = np.array([decrypt(encryptedMsgs[2]), decrypt(encryptedMsgs[3])])

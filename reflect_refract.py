@@ -602,7 +602,7 @@ class Lens(ParentLens):
             plt.xlabel('x')
             plt.ylabel('y')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
-            labels = ['Lens', 'Input Rays', 'Output', 'Normal']
+            labels = ['Lens', 'Input/Intermediate Rays', 'Output', 'Center Line']
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
@@ -694,8 +694,8 @@ class Linear_Lens(ParentLens):
             plt.gca().set_aspect('equal', adjustable='box')
             plt.xlabel('x')
             plt.ylabel('y')
-            lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
-            labels = ['Lens', 'Input Rays', 'Output', 'Normal']
+            lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green']]
+            labels = ['Lens', 'Input/Intermediate Rays', 'Output']
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
             plt.show()
 

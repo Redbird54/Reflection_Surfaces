@@ -19,7 +19,7 @@ curve = Curve(a, b, SubGroup(p, g, n, h), 'secp256k1')
 privKey = secrets.randbelow(curve.field.n)
 pubKey = privKey * curve.g
 
-def encrypt (msg1, name):
+def encrypt (msg1, name, globalbox):
     msg = msg1.encode('UTF-8')
 
     ciphertextPrivKey = secrets.randbelow(curve.field.n)
@@ -30,7 +30,7 @@ def encrypt (msg1, name):
     encryptedMsg = (ciphertext, aesCipherEnc.nonce, authTag, ciphertextPubKey)
 
     print(name)
-    print("Encrypted msg:", float(int(str(binascii.hexlify(encryptedMsg[0]))[2:-1], 16)))
+    print("Encrypted msg:", float(int(str(binascii.hexlify(encryptedMsg[0]))[2:-1], 16) % globalbox))
     return encryptedMsg
 
 def decrypt (encryptedMsg):
@@ -44,8 +44,13 @@ def decrypt (encryptedMsg):
     return float(decryptedMsg)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        raise Exception("Must have 2 arguments")
+    if len(sys.argv) != 4:
+        raise Exception("Must have 3 arguments")
         sys.exit()
-    msg = encrypt(sys.argv[1], str(sys.argv[2]))
-    output = decrypt(msg)
+    try:
+        float(sys.argv[3])
+    except:
+        print("Third argument must be a float number")
+    else:
+        msg = encrypt(sys.argv[1], str(sys.argv[2]), float(sys.argv[3]))
+        output = decrypt(msg)
