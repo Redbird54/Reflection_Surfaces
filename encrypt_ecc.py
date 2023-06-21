@@ -2,6 +2,7 @@ from tinyec.ec import SubGroup, Curve
 from Crypto.Cipher import AES
 import hashlib, secrets, binascii, struct
 import sys
+import secrets
 
 def ecc_point_to_256_bit_key(point):
     sha = hashlib.sha256(int.to_bytes(point.x, 32, 'big'))
@@ -29,8 +30,8 @@ def encrypt (msg1, name, globalbox):
     ciphertext, authTag = aesCipherEnc.encrypt_and_digest(msg)
     encryptedMsg = (ciphertext, aesCipherEnc.nonce, authTag, ciphertextPubKey)
 
-    print(name)
-    print("Encrypted msg:", float(int(str(binascii.hexlify(encryptedMsg[0]))[2:-1], 16) % globalbox))
+    # print(name)
+    # print("Encrypted msg:", float((int(str(binascii.hexlify(encryptedMsg[0]))[2:-1], 16) % globalbox) * secrets.choice([-1, 1])))
     return encryptedMsg
 
 def decrypt (encryptedMsg):
@@ -40,7 +41,7 @@ def decrypt (encryptedMsg):
     decryptedMsg = aesCipherDec.decrypt_and_verify(ciphertext, authTag)
 
 
-    print("Decrypted msg:", str(decryptedMsg)[2:-1])
+    # print("Decrypted msg:", str(decryptedMsg)[2:-1])
     return float(decryptedMsg)
 
 if __name__ == '__main__':

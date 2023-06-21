@@ -119,7 +119,9 @@ if actionCount > 0:
         encrypt(str(outPoint[2]), "z Position", globalbox), encrypt(str(inRay[0]), "x Direction", globalbox), 
         encrypt(str(inRay[1]), "y Direction", globalbox), encrypt(str(inRay[2]), "z Direction", globalbox),
         encrypt(str(mag), "Ray Magnitude", globalbox), encrypt(str(actionCount), "Interaction Count", globalbox)]
-    
+
+    plt.plot(secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[0][0]))[2:-1], 16) % globalbox), secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[1][0]))[2:-1], 16) % globalbox), 'go')
+
     decryptPoint = np.array([decrypt(encryptedMsgs[0]), decrypt(encryptedMsgs[1]), decrypt(encryptedMsgs[2])])
     decryptDirection = np.array([decrypt(encryptedMsgs[3]), decrypt(encryptedMsgs[4]), decrypt(encryptedMsgs[5])])
     decryptMag = decrypt(encryptedMsgs[6])
@@ -153,6 +155,6 @@ if not(indivPlots):
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
-    labels = ['Curve Objects', 'Rays', 'Output Ray Forward Direction', 'Final Ray Reverse Direction']
+    labels = ['Objects', 'Rays', 'Output Ray Forward Direction', 'Final Ray Reverse Direction']
     ax.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
     plt.show()

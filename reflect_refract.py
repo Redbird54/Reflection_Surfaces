@@ -99,6 +99,7 @@ class Object:
             outRefr = mu*(initNorm - (normNorm * np.dot(normNorm, initNorm))) + (normNorm * np.sqrt(1 - ((mu**2) * (1 - ((np.dot(normNorm, initNorm))**2)))))
         else:
             outRefr = initDir ##THIS LINE PROBABLY CAUSES ISSUES WITH DECRYPTION##
+            raise Exception ("TOTAL INTERNAL REFLECTION")
 
         ##Find output intercept with box
         if self.notLens and boxedge:
@@ -131,12 +132,12 @@ class Object:
                 elif self.objType == "refraction" or self.objType == "both":
                     plt.plot(outPoint2[0] + t3*outRefr[0], outPoint2[1] + t3*outRefr[1], 'green')
             lines = [Line2D([0], [0], color=c, linewidth=3) for c in ['red', 'black', 'green', 'orange']]
-            labels = ['Curve Object', 'Input Ray', 'Output', 'Normal']
+            labels = ['Object', 'Input Ray', 'Output', 'Normal']
             if boxshow:
                 lines.append(Line2D([0], [0], color='blue', linewidth=3))
                 lines.append(Line2D([0], [0], color='brown', linewidth=3))
-                labels.append('Inner Box')
-                labels.append('Outer Box')
+                labels.append('Local Bounding Box')
+                labels.append('Object Limit Boundary')
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
@@ -509,6 +510,9 @@ class Lens(ParentLens):
 
             plt.contour(hypx, hypy, (self.func(self.center1, [hypx, hypy], self.r1)), [0], colors='red')
             plt.contour(hypx, hypy, (self.func(self.center2, [hypx, hypy], self.r2)), [0], colors='red')
+
+        if boxshow:
+            super().show_box(self.h, self.k)
         
     def get_distance(self, initPoint, initDir):
         dist1 = self.lens1.get_distance(initPoint, initDir)
@@ -571,25 +575,28 @@ class Lens(ParentLens):
         intercept = initPoint + dist*initDir
 
         if -1e-11 <= (intercept[0] - self.center2[0])**2 + (intercept[1] - self.center2[1])**2 - (self.r2)**2 <= 1e-11:
-            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False, False)[0]
             distNew = self.lens1.get_distance(nextPoint, nextRefr)
             interceptNew = nextPoint + distNew*nextRefr
             if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5) and distNew != -1:
-                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
+                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         elif -1e-11 <= (intercept[0] - self.center1[0])**2 + (intercept[1] - self.center1[1])**2 - (self.r1)**2 <= 1e-11:
-            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False, False)[0]
             distNew = self.lens2.get_distance(nextPoint, nextRefr)
             interceptNew = nextPoint + distNew*nextRefr
             if self.h - (self.boxsize*1.5) <= interceptNew[0] <= self.h + (self.boxsize*1.5) and self.k - (self.boxsize*1.5) <= interceptNew[1] <= self.k + (self.boxsize*1.5) and distNew != -1:
-                    (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
+                    (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         else:
             nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
 
-        nextPoint, isBoxEdge = super().box_edge(nextPoint, nextRefr)
+        if boxedge:
+            nextPoint, isBoxEdge = super().box_edge(nextPoint, nextRefr)
+        else:
+            isBoxEdge = 0
 
         focalLength = 1 / ((n2 - 1) * ((1 / self.r1) + (1 / self.r2) - (((n2 - 1) * self.height) / (n2 * self.r1 * self.r2))))
         print("Focal length: ", focalLength)
@@ -612,8 +619,8 @@ class Lens(ParentLens):
             if boxshow:
                 lines.append(Line2D([0], [0], color='blue', linewidth=3))
                 lines.append(Line2D([0], [0], color='brown', linewidth=3))
-                labels.append('Inner Box')
-                labels.append('Outer Box')
+                labels.append('Local Bounding Box')
+                labels.append('Object Limit Boundary')
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
@@ -657,6 +664,9 @@ class Linear_Lens(ParentLens):
         ##Equation of curve
         plt.contour(hypx, hypy, (self.func(self.center1, [hypx, hypy])), [0], colors='red')
         plt.contour(hypx, hypy, (self.func(self.center2, [hypx, hypy])), [0], colors='red')
+
+        if boxshow:
+            super().show_box(self.h, self.k)
         
     def get_distance(self, initPoint, initDir):
         dist1 = self.lens1.get_distance(initPoint, initDir)
@@ -677,23 +687,26 @@ class Linear_Lens(ParentLens):
 
         intercept = initPoint + dist*initDir
 
-        #Testiing which order to refract through lenses, depending on location of intercept
+        #Testing which order to refract through lenses, depending on location of intercept
         if (self.theta > 0 and intercept[1] < self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] < self.h):
-            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False, False)[0]
             if self.lens1.get_distance(nextPoint, nextRefr) != -1:
-                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
+                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(self.lens1.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         elif (self.theta > 0 and intercept[1] > self.k + (intercept[0]-self.h) * self.slope[1]/self.slope[0]) or (self.theta == 0 and intercept[0] > self.h):
-            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False)[0]
+            (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens1.output(dist, initPoint, initDir, n1, n2, intensity, boxedge, False, False)[0]
             if self.lens2.get_distance(nextPoint, nextRefr) != -1:
-                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False)[0]
+                (nextPoint, nextRefl, nextRefr, intensity, extra) = self.lens2.output(self.lens2.get_distance(nextPoint, nextRefr), nextPoint, nextRefr, n2, n1, intensity, boxedge, False, False)[0]
             else:
                 nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
         else:
             nextPoint, nextRefl, nextRefr = intercept, initDir, initDir
 
-        nextPoint, isBoxEdge = super().box_edge(nextPoint, nextRefr)
+        if boxedge:
+            nextPoint, isBoxEdge = super().box_edge(nextPoint, nextRefr)
+        else:
+            isBoxEdge = 0
 
         if isPlot:
             t = np.linspace(0, 10, 500)
@@ -710,8 +723,8 @@ class Linear_Lens(ParentLens):
             if boxshow:
                 lines.append(Line2D([0], [0], color='blue', linewidth=3))
                 lines.append(Line2D([0], [0], color='brown', linewidth=3))
-                labels.append('Inner Box')
-                labels.append('Outer Box')
+                labels.append('Local Bounding Box')
+                labels.append('Object Limit Boundary')
             plt.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=2)
             plt.show()
 
