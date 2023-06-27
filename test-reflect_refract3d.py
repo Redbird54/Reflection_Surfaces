@@ -120,7 +120,7 @@ if actionCount > 0:
         encrypt(str(inRay[1]), "y Direction", globalbox), encrypt(str(inRay[2]), "z Direction", globalbox),
         encrypt(str(mag), "Ray Magnitude", globalbox), encrypt(str(actionCount), "Interaction Count", globalbox)]
 
-    plt.plot(secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[0][0]))[2:-1], 16) % globalbox), secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[1][0]))[2:-1], 16) % globalbox), 'go')
+    # plt.plot(secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[0][0]))[2:-1], 16) % globalbox), secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[1][0]))[2:-1], 16) % globalbox), 'mo')
 
     decryptPoint = np.array([decrypt(encryptedMsgs[0]), decrypt(encryptedMsgs[1]), decrypt(encryptedMsgs[2])])
     decryptDirection = np.array([decrypt(encryptedMsgs[3]), decrypt(encryptedMsgs[4]), decrypt(encryptedMsgs[5])])

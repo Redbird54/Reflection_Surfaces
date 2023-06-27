@@ -204,7 +204,6 @@ class Parabola(Object):
         return (self.a * (x**2) - y)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('PARABOLA')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
@@ -251,7 +250,6 @@ class Linear(Object):
         return (self.surfDir[0] * (self.surfPoint[1] - input[1]) + self.surfDir[1] * (input[0] - self.surfPoint[0]))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('LINEAR')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
@@ -310,7 +308,6 @@ class Hyperbola(Object):
             - ((self.a**2) * (self.b**2)))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('HYPERBOLA')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
@@ -369,7 +366,6 @@ class Ellipse(Object):
             - ((self.a**2) * (self.b**2)))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('ELLIPSE')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 
@@ -570,8 +566,6 @@ class Lens(ParentLens):
         return (x**2 + y**2 - r**2)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('CIRCULAR LENS')
-
         intercept = initPoint + dist*initDir
 
         if -1e-11 <= (intercept[0] - self.center2[0])**2 + (intercept[1] - self.center2[1])**2 - (self.r2)**2 <= 1e-11:
@@ -599,7 +593,7 @@ class Lens(ParentLens):
             isBoxEdge = 0
 
         focalLength = 1 / ((n2 - 1) * ((1 / self.r1) + (1 / self.r2) - (((n2 - 1) * self.height) / (n2 * self.r1 * self.r2))))
-        print("Focal length: ", focalLength)
+        # print("Focal length: ", focalLength)
 
         if isPlot:
             t = np.linspace(0, 10, 500)
@@ -683,8 +677,6 @@ class Linear_Lens(ParentLens):
         return (self.slope[0] * (center[1] - input[1]) + self.slope[1] * (input[0] - center[0]))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('LINEAR LENS')
-
         intercept = initPoint + dist*initDir
 
         #Testing which order to refract through lenses, depending on location of intercept

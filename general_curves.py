@@ -251,7 +251,6 @@ class Polynomial3(Object):
             + self.e * (x**2) + self.f * (y**2) + self.g * x * y + self.h1 * x + self.i * y + self.j)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('3RD DEGREE POLYNOMIAL')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)
 
 class Polynomial2(Object):
@@ -311,5 +310,4 @@ class Polynomial2(Object):
             + self.e * y + self.f)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow):
-        print('2ND DEGREE POLYNOMIAL')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, isPlot, boxshow)

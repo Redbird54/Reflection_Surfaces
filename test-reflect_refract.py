@@ -3,6 +3,7 @@ from general_curves import *
 from encrypt_ecc import *
 import queue
 import secrets
+import random
 
 ##Hyperparameters for model
 indivPlots = False
@@ -38,7 +39,6 @@ initialObjs.append(Parabola(1,-15,13,boxsize,"reflection",5*math.pi/3))
 # initialObjs.append(Linear_Lens(-15,13,4,boxsize,18*math.pi/20))
 # initialObjs.append(Lens(1,8,7,10,5,boxsize,9*math.pi/20)) ##THIS CAUSES BUG OUTPUT -- SEE NOTES BELOW
 # initialObjs.append(Linear_Lens(1,8,4,boxsize,8*math.pi/20))
-
 
 def get_valid_objs(initialObjs, objs, startPoint):
     for obj in initialObjs:
@@ -131,7 +131,7 @@ if actionCount > 0:
         encrypt(str(inRay[0]), "x Direction", globalbox), encrypt(str(inRay[1]), "y Direction", globalbox), 
         encrypt(str(mag), "Ray Magnitude", globalbox), encrypt(str(actionCount), "Interaction Count", globalbox)]
 
-    plt.plot(secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[0][0]))[2:-1], 16) % globalbox), secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[1][0]))[2:-1], 16) % globalbox), 'go')
+    plt.plot(secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[0][0]))[2:-1], 16) % globalbox), secrets.choice([-1, 1]) * (int(str(binascii.hexlify(encryptedMsgs[1][0]))[2:-1], 16) % globalbox), 'mo')
 
     decryptPoint = np.array([decrypt(encryptedMsgs[0]), decrypt(encryptedMsgs[1])])
     decryptDirection = np.array([decrypt(encryptedMsgs[2]), decrypt(encryptedMsgs[3])])

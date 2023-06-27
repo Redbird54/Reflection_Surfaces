@@ -234,7 +234,6 @@ class Ellipsoid(Object):
         + (self.a**2)*(self.b**2) * (z**2) - (self.a**2)*(self.b**2)*(self.c**2))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
-        print('ELLIPSOID')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
@@ -255,7 +254,6 @@ class Sphere(Ellipsoid):
         return super().func(input)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
-        print('SPHERE')
         return super(Ellipsoid, self).output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
@@ -321,7 +319,6 @@ class Hyperboloid(Object):
         - (self.a**2)*(self.b**2) * (z**2) - (self.a**2)*(self.b**2)*(self.c**2))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
-        print('HYPERBOLOID')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
@@ -384,7 +381,6 @@ class EllipticalParaboloid(Object):
         return ((self.b**2) * (x**2) + (self.a**2) * (y**2) - (self.a**2)*(self.b**2) * (z**2))
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
-        print('ELLIPTIC PARABOLOID')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
@@ -456,7 +452,6 @@ class Polynomial2(Object):
             + self.g * x + self.h1 * y + self.i * z + self.j)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
-        print('2ND DEGREE POLYNOMIAL IN 3D')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
 
@@ -587,6 +582,5 @@ class Polynomial3(Object):
             + self.p * x + self.q * y + self.r * z + self.s)
 
     def output(self, dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot):
-        print('3RD DEGREE POLYNOMIAL IN 3D')
         return super().output_procedure(dist, initPoint, initDir, n1, n2, intensity, boxedge, ax, isPlot)
 
